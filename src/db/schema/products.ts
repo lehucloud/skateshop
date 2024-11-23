@@ -16,7 +16,7 @@ import { generateId } from "@/lib/id"
 import { categories } from "./categories"
 import { stores } from "./stores"
 import { subcategories } from "./subcategories"
-import { productTags } from "./tags"
+import { productTags, tags } from "./tags"
 import { lifecycleDates } from "./utils"
 import { productVariants } from "./variants"
 
@@ -48,6 +48,7 @@ export const products = pgTable(
      * numeric and decimal are the same in postgresql
      * @see https://www.postgresql.org/docs/current/datatype-numeric.html#:~:text=9223372036854775808%20to%20%2B9223372036854775807-,decimal,the%20decimal%20point%3B%20up%20to%2016383%20digits%20after%20the%20decimal%20point,-real
      */
+    salesVolume: integer("sales_volume").notNull().default(0),
     price: decimal("price", { precision: 10, scale: 2 }).notNull().default("0"),
     originalPrice: decimal("original_price", {
       precision: 10,
@@ -80,9 +81,15 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     fields: [products.subcategoryId],
     references: [subcategories.id],
   }),
-  variants: many(productVariants, { relationName: "productVariants" }),
-  tags: many(productTags, { relationName: "productTags" }),
+  variants: many(productVariants),
+  tags: many(productTags)
 }))
 
 export type Product = typeof products.$inferSelect
 export type NewProduct = typeof products.$inferInsert
+
+export default interface ExtraProduct extends Product {
+  category: string,
+  subcategory: string,
+  stripeAccountId: string,
+}

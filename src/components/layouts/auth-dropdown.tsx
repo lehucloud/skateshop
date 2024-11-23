@@ -1,6 +1,7 @@
 import * as React from "react"
 import Link from "next/link"
-import type { User } from "@clerk/nextjs/server"
+// import type { User } from "@clerk/nextjs/server"
+import type { User } from "next-auth"
 import { DashboardIcon, ExitIcon, GearIcon } from "@radix-ui/react-icons"
 
 import { getStoreByUserId } from "@/lib/queries/store"
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Icons } from "@/components/icons"
+import { dashboardConfig } from "@/config/dashboard"
 
 interface AuthDropdownProps
   extends React.ComponentPropsWithRef<typeof DropdownMenuTrigger>,
@@ -42,12 +44,12 @@ export async function AuthDropdown({
     )
   }
 
-  const initials = `${user.firstName?.charAt(0) ?? ""} ${
-    user.lastName?.charAt(0) ?? ""
+  const initials = `${user.name?.charAt(0) ?? ""} ${
+    user.name?.charAt(0) ?? ""
   }`
-  const email = getUserEmail(user)
+  // const email = getUserEmail(user)
 
-  const storePromise = getStoreByUserId({ userId: user.id })
+  const storePromise = getStoreByUserId({ userId: user.id==null? "" : user.id })
 
   return (
     <DropdownMenu>
@@ -58,7 +60,7 @@ export async function AuthDropdown({
           {...props}
         >
           <Avatar className="size-8">
-            <AvatarImage src={user.imageUrl} alt={user.username ?? ""} />
+            <AvatarImage src={user.image==null?"":user.image} alt={user.name ?? ""} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -67,10 +69,10 @@ export async function AuthDropdown({
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {user.firstName} {user.lastName}
+              {user.name}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {email}
+              {user.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -84,7 +86,7 @@ export async function AuthDropdown({
             </div>
           }
         >
-          <AuthDropdownGroup storePromise={storePromise} />
+          <AuthDropdownGroup storePromise={storePromise} user= {user} />
         </React.Suspense>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
@@ -100,35 +102,48 @@ export async function AuthDropdown({
 }
 
 interface AuthDropdownGroupProps {
-  storePromise: ReturnType<typeof getStoreByUserId>
+  storePromise: ReturnType<typeof getStoreByUserId>,
+  user: User | null
 }
 
-async function AuthDropdownGroup({ storePromise }: AuthDropdownGroupProps) {
+async function AuthDropdownGroup({ storePromise,user }: AuthDropdownGroupProps) {
   const store = await storePromise
 
+  const items = dashboardConfig.sidebarNav
+  
   return (
     <DropdownMenuGroup>
-      <DropdownMenuItem asChild>
-        <Link href={store ? `/store/${store.id}` : "/onboarding"}>
-          <DashboardIcon className="mr-2 size-4" aria-hidden="true" />
-          Dashboard
-          <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
-        </Link>
-      </DropdownMenuItem>
-      <DropdownMenuItem asChild>
-        <Link href="/dashboard/billing">
-          <Icons.credit className="mr-2 size-4" aria-hidden="true" />
-          Billing
-          <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-        </Link>
-      </DropdownMenuItem>
-      <DropdownMenuItem asChild>
-        <Link href="/dashboard/settings">
-          <GearIcon className="mr-2 size-4" aria-hidden="true" />
-          Settings
-          <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-        </Link>
-      </DropdownMenuItem>
+      {store ? 
+        <DropdownMenuItem asChild>
+              <Link href={`/store/${store.id}`}>
+                <Icons.store className="mr-2 size-4" aria-hidden="true" />
+                My store 
+                {/* <DropdownMenuShortcut>⌘D</DropdownMenuShortcut> */}
+              </Link>
+        </DropdownMenuItem>
+      :
+        <DropdownMenuItem asChild>
+              <Link href={`/onboarding`}>
+                <Icons.store className="mr-2 size-4" aria-hidden="true" />
+                Create store
+                {/* <DropdownMenuShortcut>⌘D</DropdownMenuShortcut> */}
+              </Link>
+        </DropdownMenuItem>
+      }
+      {items.map((item) => {
+        const IconComponent = item.icon ? Icons[item.icon] : null;
+        return (
+          <DropdownMenuItem asChild>
+            <Link href={`${item.href}`}>
+              {IconComponent && (
+                <IconComponent className="mr-2 size-4" aria-hidden="true" />
+              )}
+              {item.title}
+              {/* <DropdownMenuShortcut>⌘D</DropdownMenuShortcut> */}
+            </Link>
+          </DropdownMenuItem>
+        );
+      })}
     </DropdownMenuGroup>
   )
 }

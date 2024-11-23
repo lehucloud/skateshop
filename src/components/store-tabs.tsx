@@ -33,6 +33,11 @@ export function StoreTabs({ storeId }: StoreTabsProps) {
       isActive: segment === "orders",
     },
     {
+      title: "Payments",
+      href: `/dashboard/stores/${storeId}/payments`,
+      isActive: segment === "orders",
+    },
+    {
       title: "Customers",
       href: `/dashboard/stores/${storeId}/customers`,
       isActive: segment === "customers",

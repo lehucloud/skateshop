@@ -19,7 +19,7 @@ export async function getCart(input?: {
   storeId: string
 }): Promise<CartLineItemSchema[]> {
   noStore()
-
+  
   const cartId = cookies().get("cartId")?.value
 
   if (!cartId) return []
@@ -61,7 +61,7 @@ export async function getCart(input?: {
           input?.storeId ? eq(products.storeId, input.storeId) : undefined
         )
       )
-      .groupBy(products.id)
+      .groupBy(products.id,categories.id,subcategories.id,stores.id)
       .orderBy(desc(stores.stripeAccountId), asc(products.createdAt))
       .execute()
       .then((items) => {
@@ -77,6 +77,15 @@ export async function getCart(input?: {
         })
       })
 
+      for (const item of cartLineItems as CartLineItemSchema[]) {
+        const cartItem = cart?.items?.find(
+          (cartItem) => cartItem.productId === item.id
+        )
+        if (cartItem) {
+          item.options = cartItem.options
+        }
+      }
+
     return cartLineItems
   } catch (err) {
     return []
@@ -85,24 +94,26 @@ export async function getCart(input?: {
 
 export async function getUniqueStoreIds() {
   noStore()
-
+  
   const cartId = cookies().get("cartId")?.value
 
   if (!cartId) return []
 
   try {
-    const cart = await db
+    const cart = await db.query.carts.findFirst({
+      where: eq(carts.id, cartId),
+    })
+
+    if (!cart?.items?.length) return []
+
+    const productIds = cart.items.map(item => item.productId)
+    const storeItems = await db
       .selectDistinct({ storeId: products.storeId })
-      .from(carts)
-      .leftJoin(
-        products,
-        sql`JSON_CONTAINS(carts.items, JSON_OBJECT('productId', products.id))`
-      )
-      .groupBy(products.storeId)
-      .where(eq(carts.id, cartId))
+      .from(products)
+      .where(inArray(products.id, productIds))
 
-    const storeIds = cart.map((item) => item.storeId).filter((id) => id)
-
+    const storeIds = storeItems.map((item) => item.storeId).filter(Boolean)
+    
     return storeIds
   } catch (err) {
     return []

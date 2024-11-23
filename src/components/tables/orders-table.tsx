@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { type Order } from "@/db/schema"
-import type { StripePaymentStatus } from "@/types"
+// import type { StripePaymentStatus } from "@/types"
 import { DotsHorizontalIcon } from "@radix-ui/react-icons"
 import { type ColumnDef } from "@tanstack/react-table"
 
@@ -69,7 +69,7 @@ export function OrdersTable({
               className={cn(
                 "pointer-events-none text-sm capitalize text-white",
                 getStripePaymentStatusColor({
-                  status: cell.getValue() as StripePaymentStatus,
+                  status: cell.getValue(),
                   shade: 600,
                 })
               )}

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { env } from "@/env.js"
 
 import { getCategories, getSubcategories } from "@/lib/queries/product"
-import { getCachedUser } from "@/lib/queries/user"
+// import { getCachedUser } from "@/lib/queries/user"
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card"
 
 import { CreateProductForm } from "./_components/create-product-form"
+import { auth } from "@/lib/auth"
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
@@ -29,9 +30,9 @@ interface NewProductPageProps {
 export default async function NewProductPage({ params }: NewProductPageProps) {
   const storeId = decodeURIComponent(params.storeId)
 
-  const user = await getCachedUser()
+  const session = await auth()
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/sigin")
   }
 

@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { CartLineItems } from "@/components/checkout/cart-line-items"
+import getPayChannelsByStoreId from "@/lib/queries/store"
+import PaymentLinks from "./checkout-payment-button"
 
 interface CheckoutCardProps {
   storeId: string
@@ -19,6 +21,12 @@ interface CheckoutCardProps {
 
 export async function CheckoutCard({ storeId }: CheckoutCardProps) {
   const cartLineItems = await getCart({ storeId })
+
+  //获取当前商户的支付钱包账户信息
+  const payChannels = await getPayChannelsByStoreId({
+    storeId,
+  })
+  
 
   return (
     <Card
@@ -36,17 +44,6 @@ export async function CheckoutCard({ storeId }: CheckoutCardProps) {
         <CardTitle className="line-clamp-1 flex-1">
           {cartLineItems[0]?.storeName}
         </CardTitle>
-        <Link
-          aria-label="Checkout"
-          href={`/checkout/${storeId}`}
-          className={cn(
-            buttonVariants({
-              size: "sm",
-            })
-          )}
-        >
-          Checkout
-        </Link>
       </CardHeader>
       <Separator className="mb-4" />
       <CardContent className="pb-6 pl-6 pr-0">
@@ -65,6 +62,10 @@ export async function CheckoutCard({ storeId }: CheckoutCardProps) {
             )
           )}
         </span>
+        
+        {payChannels.map((channel) => (
+          <PaymentLinks storeId={storeId} payChannel={channel} key={channel.id} />
+        ))}
       </CardFooter>
     </Card>
   )

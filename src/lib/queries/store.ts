@@ -5,7 +5,7 @@ import {
   unstable_noStore as noStore,
 } from "next/cache"
 import { db } from "@/db"
-import { orders, products, stores, type Store } from "@/db/schema"
+import { orders, Payment, payments, products, stores, type Store } from "@/db/schema"
 import { takeFirstOrThrow } from "@/db/utils"
 import type { SearchParams } from "@/types"
 import {
@@ -21,6 +21,7 @@ import {
 } from "drizzle-orm"
 
 import { getStoresSchema } from "@/lib/validations/store"
+import { notFound } from "next/navigation"
 
 export async function getFeaturedStores() {
   return await cache(
@@ -190,4 +191,22 @@ export async function getStores(input: SearchParams) {
       pageCount: 0,
     }
   }
+}
+
+
+export default async function getPayChannelsByStoreId(input: SearchParams): Promise<Payment[]> {
+  
+  if (!input.storeId) {
+    notFound()
+  }
+  
+  const payChannels = await db.query.payments.findMany({
+    where: eq(payments.storeId, input.storeId as string), 
+  })
+
+  if (!payChannels) {
+    throw new Error("Payment channels not found")
+  }
+
+  return payChannels
 }

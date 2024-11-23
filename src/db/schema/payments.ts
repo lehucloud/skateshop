@@ -5,12 +5,21 @@ import {
   pgTable,
   timestamp,
   varchar,
+  json,
+  pgEnum,
 } from "drizzle-orm/pg-core"
 
 import { generateId } from "@/lib/id"
 
 import { stores } from "./stores"
 import { lifecycleDates } from "./utils"
+
+export const payChannelEnum = pgEnum("pay_channel", ["wxpay", "alipay"])
+
+export type PayConfSchema = {
+    key: string,
+    value: string,
+}
 
 // @see: https://github.com/jackblatch/OneStopShop/blob/main/db/schema.ts
 export const payments = pgTable(
@@ -22,6 +31,10 @@ export const payments = pgTable(
     storeId: varchar("store_id", { length: 30 })
       .references(() => stores.id, { onDelete: "cascade" })
       .notNull(),
+    channel: payChannelEnum("pay_channel").notNull(),
+    icon: varchar("icon").notNull(),
+    config: json("config").$type<PayConfSchema | null>().default(null),
+    enabled: boolean("enabled").notNull().default(true),
     stripeAccountId: varchar("stripe_account_id", { length: 256 }).notNull(),
     stripeAccountCreatedAt: timestamp("stripe_account_created_at"),
     stripeAccountExpiresAt: timestamp("stripe_account_expires_at"),

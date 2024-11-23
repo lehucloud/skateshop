@@ -7,7 +7,7 @@ import { env } from "@/env.js"
 import { eq } from "drizzle-orm"
 
 import { updateStore } from "@/lib/actions/store"
-import { getStripeAccount } from "@/lib/actions/stripe"
+// import { getStripeAccount } from "@/lib/actions/stripe"
 import { cn, formatDate } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import {
@@ -73,69 +73,62 @@ export default async function DashboardStorePage({
     notFound()
   }
 
-  const { account: stripeAccount } = await getStripeAccount({
-    storeId: store.id,
-  })
+  // const { account: stripeAccount } = await getStripeAccount({
+  //   storeId: store.id,
+  // })
+
+  const accounts = [
+    {
+      id: "wxpay",
+      name:"Wxpay",
+      mrt_no: "798279247829922",
+      icon: "wechat",
+      mrt_sub_id: 0,
+    },
+    {
+      id: "alipay",
+      name:"Alipay",
+      mrt_no: "798279247829922018210",
+      icon: "alipay",
+      mrt_sub_id: 0,
+    },
+  ]
 
   return (
     <div className="space-y-10">
-      {stripeAccount ? (
+      {accounts ? (
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="line-clamp-1 text-2xl">
-              Manage Stripe account
+              Manage Wallets account
             </CardTitle>
             <CardDescription>
-              Manage your Stripe account and view your payouts
+              Manage your Wallets account and view your payouts
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5 sm:grid-cols-2">
-            <div className="grid gap-2.5">
-              <Label htmlFor="stripe-account-email">Email</Label>
-              <Input
-                id="stripe-account-email"
-                name="stripeAccountEmail"
-                readOnly
-                defaultValue={stripeAccount.email ?? "N/A"}
-              />
-            </div>
-            <div className="grid gap-2.5">
-              <Label htmlFor="stripe-account-country">Country</Label>
-              <Input
-                id="stripe-account-country"
-                name="stripeAccountCountry"
-                readOnly
-                defaultValue={stripeAccount.country}
-              />
-            </div>
-            <div className="grid gap-2.5">
-              <Label htmlFor="stripe-account-currency">Currency</Label>
-              <Input
-                id="stripe-account-currency"
-                name="stripeAccountCurrency"
-                className="uppercase"
-                readOnly
-                defaultValue={stripeAccount.default_currency}
-              />
-            </div>
-            <div className="grid gap-2.5">
-              <Label htmlFor="stripe-account-created">Created</Label>
-              <Input
-                id="stripe-account-created"
-                name="stripeAccountCreated"
-                readOnly
-                defaultValue={
-                  stripeAccount.created
-                    ? formatDate(stripeAccount.created * 1000)
-                    : "N/A"
-                }
-              />
-            </div>
+            {accounts.map((account) => (
+              <Card>
+                <CardContent>
+                  <CardTitle className="text-xl space-y-1">{account.name}</CardTitle>
+                  <CardContent className="grid gap-1">
+                    <div className="flex justify-between">
+                      <span>MrtNo</span>
+                      <span>{account.mrt_no}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>MrtSubId</span>
+                      <span>{account.mrt_sub_id}</span>
+                    </div>
+                  </CardContent>
+                </CardContent>
+              </Card>
+            ))}
           </CardContent>
           <CardFooter>
             <Link
-              aria-label="Manage Stripe account"
-              href="https://dashboard.stripe.com/"
+              aria-label="Manage Wallets account"
+              href={`/store/${store.id}/payments`}
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
@@ -144,7 +137,7 @@ export default async function DashboardStorePage({
                 })
               )}
             >
-              Manage Stripe account
+              Manage Wallets account
             </Link>
           </CardFooter>
         </Card>
@@ -152,10 +145,10 @@ export default async function DashboardStorePage({
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="line-clamp-1 text-2xl">
-              Connect to Stripe
+              Connect to Wxpay or Alipay
             </CardTitle>
             <CardDescription>
-              Connect your store to Stripe to start accepting payments
+              Connect your store to Wxpay or Alipay to start accepting payments
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm"
-import { index, integer, pgTable, varchar } from "drizzle-orm/pg-core"
+import { decimal, index, integer, pgTable, varchar } from "drizzle-orm/pg-core"
 
 import { generateId } from "@/lib/id"
 
@@ -16,6 +16,11 @@ export const stocks = pgTable(
       .references(() => productVariants.id, { onDelete: "cascade" })
       .notNull(),
     quantity: integer("quantity").notNull().default(0),
+    price: decimal("price", { precision: 10, scale: 2 }).notNull().default("0"),
+    originalPrice: decimal("original_price", {
+      precision: 10,
+      scale: 2,
+    }).default("0"),
     ...lifecycleDates,
   },
   (table) => ({

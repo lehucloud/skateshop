@@ -34,7 +34,7 @@ export default async function UpdateProductPage({
 }: UpdateProductPageProps) {
   const storeId = decodeURIComponent(params.storeId)
   const productId = decodeURIComponent(params.productId)
-
+  debugger
   const product = await db.query.products.findFirst({
     where: and(eq(products.id, productId), eq(products.storeId, storeId)),
   })
@@ -58,7 +58,7 @@ export default async function UpdateProductPage({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <UpdateProductForm promises={promises} product={product} />
+        {/* <UpdateProductForm promises={promises} product={product} /> */}
       </CardContent>
     </Card>
   )

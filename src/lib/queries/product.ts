@@ -16,6 +16,8 @@ import type { SearchParams } from "@/types"
 import { and, asc, count, desc, eq, gte, inArray, lte, sql } from "drizzle-orm"
 
 import { getProductsSchema } from "@/lib/validations/product"
+import ExtraProduct from "@/db/schema/products"
+
 
 // See the unstable_cache API docs: https://nextjs.org/docs/app/api-reference/functions/unstable_cache
 export async function getFeaturedProducts() {
@@ -51,7 +53,10 @@ export async function getFeaturedProducts() {
 }
 
 // See the unstable_noStore API docs: https://nextjs.org/docs/app/api-reference/functions/unstable_noStore
-export async function getProducts(input: SearchParams) {
+export async function getProducts(input: SearchParams):Promise<{
+  data:ExtraProduct[],
+  pageCount:number
+}> {
   noStore()
 
   try {
@@ -108,7 +113,7 @@ export async function getProducts(input: SearchParams) {
               : undefined
           )
         )
-        .groupBy(products.id)
+        .groupBy(products.id,categories.id,subcategories.id, stores.id)
         .orderBy(
           column && column in products
             ? order === "asc"
@@ -138,12 +143,12 @@ export async function getProducts(input: SearchParams) {
         .execute()
         .then((res) => res[0]?.count ?? 0)
 
-      const pageCount = Math.ceil(total / limit)
+          const pageCount = Math.ceil(total / limit)
 
-      return {
-        data,
-        pageCount,
-      }
+          return {
+            data: data as ExtraProduct[],
+            pageCount:pageCount,
+          }
     })
 
     return transaction

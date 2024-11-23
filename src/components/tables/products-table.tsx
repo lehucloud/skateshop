@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { type Product } from "@/db/schema"
+import { Customer, type Product } from "@/db/schema"
 import { DotsHorizontalIcon } from "@radix-ui/react-icons"
 import { type ColumnDef } from "@tanstack/react-table"
 import { toast } from "sonner"
@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { deleteProduct } from "@/lib/actions/product"
 import { getErrorMessage } from "@/lib/handle-error"
 import { type getCategories } from "@/lib/queries/product"
+
 import { formatDate, formatPrice } from "@/lib/utils"
 import { useDataTable } from "@/hooks/use-data-table"
 import { Badge } from "@/components/ui/badge"
@@ -25,15 +26,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { DataTable } from "@/components/data-table/data-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-
-type AwaitedProduct = Pick<
-  Product,
-  "id" | "name" | "categoryId" | "price" | "inventory" | "rating" | "createdAt"
->
+import ExtraProduct from "@/db/schema/products"
+import { DataTableToolbar } from "../data-table/data-table-toolbar"
+import { DataTableFilterField } from "@/types"
+import { ProductTableToolbarActions } from "./products-table-toolbar-actions"
+import { Icons } from "../icons"
+import { ProductTableFloatingBar } from "./products-table-floating-bar"
 
 interface ProductsTableProps {
   promise: Promise<{
-    data: AwaitedProduct[]
+    data: ExtraProduct[]
     pageCount: number
   }>
   categoriesPromise: ReturnType<typeof getCategories>
@@ -47,12 +49,12 @@ export function ProductsTable({
 }: ProductsTableProps) {
   const { data, pageCount } = React.use(promise)
   const categories = React.use(categoriesPromise)
-
+  
   const [isPending, startTransition] = React.useTransition()
   const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([])
 
   // Memoize the columns so they don't re-render on every render
-  const columns = React.useMemo<ColumnDef<AwaitedProduct, unknown>[]>(
+  const columns = React.useMemo<ColumnDef<ExtraProduct, unknown>[]>(
     () => [
       {
         id: "select",
@@ -157,13 +159,13 @@ export function ProductsTable({
             <DropdownMenuContent align="end" className="w-[160px]">
               <DropdownMenuItem asChild>
                 <Link
-                  href={`/dashboard/stores/${storeId}/products/${row.original.id}`}
+                  href={`/store/${storeId}/products/${row.original.id}`}
                 >
                   Edit
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/product/${row.original.id}`}>View</Link>
+                <Link href={`/preview/product/${row.original.id}`}>View</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -221,25 +223,37 @@ export function ProductsTable({
     )
   }
 
+  const filterFields = [
+    {
+      label: "Name",
+      value: "name",
+      placeholder: "string",
+      options: [{
+        label: "active",
+        value: "active",
+        icon: Icons.activity,
+        withCount: true
+      }] 
+    },
+  ] as DataTableFilterField<ExtraProduct>[]
+
   const { table } = useDataTable({
     data,
     columns,
     pageCount,
-    filterFields: [
-      {
-        value: "name",
-        label: "Name",
-      },
-      // {
-      //   value: "category",
-      //   label: "Category",
-      //   options: products.category.enumValues.map((category) => ({
-      //     label: `${category.charAt(0).toUpperCase()}${category.slice(1)}`,
-      //     value: category,
-      //   })),
-      // },
-    ],
+    filterFields,
   })
 
-  return <DataTable table={table} />
+  return (
+    <>
+      <DataTable table={table} >
+
+        {/* <ProductTableFloatingBar table={table} /> */}
+        <DataTableToolbar table={table} filterFields={filterFields}>
+            <ProductTableToolbarActions storeId={storeId} table={table} />
+        </DataTableToolbar>
+
+      </DataTable>
+    </>
+  )
 }

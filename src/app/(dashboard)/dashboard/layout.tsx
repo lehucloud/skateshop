@@ -1,25 +1,31 @@
+'use'
 import { redirect } from "next/navigation"
 
 import { getStoresByUserId } from "@/lib/queries/store"
-import { getCachedUser, getUserPlanMetrics } from "@/lib/queries/user"
+import { getUserPlanMetrics } from "@/lib/queries/user"
 
 import { SidebarProvider } from "../../../components/layouts/sidebar-provider"
-import { DashboardHeader } from "../store/[storeId]/_components/dashboard-header"
-import { DashboardSidebar } from "../store/[storeId]/_components/dashboard-sidebar"
-import { DashboardSidebarSheet } from "../store/[storeId]/_components/dashboard-sidebar-sheet"
-import { StoreSwitcher } from "../store/[storeId]/_components/store-switcher"
+import { DashboardHeader } from "./_components/dashboard-header"
+import { DashboardSidebar } from "./_components/dashboard-sidebar"
+import { DashboardSidebarSheet } from "./_components/dashboard-sidebar-sheet"
+import { StoreSwitcher } from "./_components/store-switcher"
+import { auth } from "@/lib/auth"
+// import { auth } from "@clerk/nextjs/server"
 
 export default async function DashboardLayout({
   children,
 }: React.PropsWithChildren) {
-  const user = await getCachedUser()
+  
+  const session = await auth()
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/signin")
   }
 
-  const storesPromise = getStoresByUserId({ userId: user.id })
-  const planMetricsPromise = getUserPlanMetrics({ userId: user.id })
+  const user = session.user
+
+  const storesPromise = getStoresByUserId({ userId: user.id as string})
+  const planMetricsPromise = getUserPlanMetrics({ userId: user.id  as string})
 
   return (
     <SidebarProvider>
@@ -29,7 +35,7 @@ export default async function DashboardLayout({
           className="top-0 z-30 hidden flex-col gap-4 border-r border-border/60 lg:sticky lg:block"
         >
           <StoreSwitcher
-            userId={user.id}
+            userId={user.id as string}
             storesPromise={storesPromise}
             planMetricsPromise={planMetricsPromise}
           />
@@ -39,7 +45,7 @@ export default async function DashboardLayout({
             <DashboardSidebarSheet className="lg:hidden">
               <DashboardSidebar storeId="storeId">
                 <StoreSwitcher
-                  userId={user.id}
+                  userId={user.id as string}
                   storesPromise={storesPromise}
                   planMetricsPromise={planMetricsPromise}
                 />

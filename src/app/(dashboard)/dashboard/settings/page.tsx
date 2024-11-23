@@ -5,7 +5,7 @@ import type { SearchParams } from "@/types"
 import { z } from "zod"
 
 import { getNotification } from "@/lib/queries/notification"
-import { getCachedUser } from "@/lib/queries/user"
+// import { getCachedUser } from "@/lib/queries/user"
 import { getUserEmail } from "@/lib/utils"
 import {
   Card,
@@ -23,6 +23,9 @@ import { Shell } from "@/components/shell"
 
 import { UpdateNotificationForm } from "./_components/update-notification-form"
 import { UpdateNotificationFormSkeleton } from "./_components/update-notification-form-skeleton"
+import { redirect } from "next/navigation"
+import { auth } from "@/lib/auth"
+import UserProfile from "../account/[[...rest]]/_components/user-profile"
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
@@ -43,11 +46,17 @@ export default async function SettingsPage({
 }: SettingsPageProps) {
   const { token } = schema.parse(searchParams)
 
-  const user = await getCachedUser()
+  const session = await auth()
+
+  if (!session?.user) {
+    redirect("/signin")
+  }
+
+  const user = session.user
 
   const notificationPromise = getNotification({
     token,
-    email: getUserEmail(user),
+    email: getUserEmail(user) as string,
   })
 
   return (
@@ -58,6 +67,7 @@ export default async function SettingsPage({
           Manage your settings
         </PageHeaderDescription>
       </PageHeader>
+      <UserProfile />
       <Card>
         <CardHeader>
           <CardTitle>Email Preferences</CardTitle>

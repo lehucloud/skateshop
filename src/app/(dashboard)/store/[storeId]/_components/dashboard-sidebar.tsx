@@ -44,6 +44,12 @@ export function DashboardSidebar({
       active: segments.includes("products"),
     },
     {
+      title: "Payments",
+      href: `/dashboard/stores/${storeId}/payments`,
+      icon: "credit",
+      active: segments.includes("payments"),
+    },
+    {
       title: "Customers",
       href: `/store/${storeId}/customers`,
       icon: "avatar",

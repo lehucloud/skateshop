@@ -1,41 +1,35 @@
 "use client"
 
 import * as React from "react"
-import { useSignIn } from "@clerk/nextjs"
+// import { useSignIn } from "@clerk/nextjs"
 import { type OAuthStrategy } from "@clerk/types"
 
 import { showErrorToast } from "@/lib/handle-error"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
+import { getSession, signIn } from "next-auth/react"
+import { redirect } from "next/navigation"
 
 const oauthProviders = [
-  { name: "Google", strategy: "oauth_google", icon: "google" },
-  { name: "Discord", strategy: "oauth_discord", icon: "discord" },
+  { name: "Google", id: "google", icon: "google" },
+  { name: "Github", id: "github", icon: "gitHub" },
+  { name: "WeChat", id: "wechat", icon: "credit" },
 ] satisfies {
   name: string
-  icon: keyof typeof Icons
-  strategy: OAuthStrategy
+  icon: keyof typeof Icons,
+  id: string
 }[]
 
 export function OAuthSignIn() {
-  const [loading, setLoading] = React.useState<OAuthStrategy | null>(null)
-  const { signIn, isLoaded: signInLoaded } = useSignIn()
+  const [loading, setLoading] = React.useState<string | null>(null)
+  const handleLogin = async (id:string) => {
+    const response = await signIn(id);
 
-  async function oauthSignIn(provider: OAuthStrategy) {
-    if (!signInLoaded) return null
-
-    try {
-      setLoading(provider)
-      await signIn.authenticateWithRedirect({
-        strategy: provider,
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/",
-      })
-    } catch (err) {
-      setLoading(null)
-      showErrorToast(err)
+    if(response){
+      redirect("/dashboard")
     }
-  }
+    setLoading(id)
+  };
 
   return (
     <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
@@ -44,13 +38,13 @@ export function OAuthSignIn() {
 
         return (
           <Button
-            key={provider.strategy}
+            key={provider.id}
             variant="outline"
             className="w-full bg-background"
-            onClick={() => void oauthSignIn(provider.strategy)}
+            onClick={() => void handleLogin(provider.id)}
             disabled={loading !== null}
           >
-            {loading === provider.strategy ? (
+            {loading === provider.id ? (
               <Icons.spinner
                 className="mr-2 size-4 animate-spin"
                 aria-hidden="true"

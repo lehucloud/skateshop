@@ -12,7 +12,8 @@ import {
 
 import { DataTablePagination } from "./data-table-pagination"
 
-interface DataTableProps<TData> {
+interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
+  
   /**
    * The table instance returned from useDataTable hook with pagination, sorting, filtering, etc.
    * @type TanstackTable<TData>
@@ -31,9 +32,12 @@ interface DataTableProps<TData> {
 export function DataTable<TData>({
   table,
   floatingBar = null,
+  children
 }: DataTableProps<TData>) {
   return (
     <div className="w-full space-y-2.5 overflow-auto">
+
+      {children}
       <div className="rounded-md border">
         <Table>
           <TableHeader>

@@ -19,9 +19,11 @@ import { ProductCard } from "@/components/product-card"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { Rating } from "@/components/rating"
 import { Shell } from "@/components/shell"
+import { Badge } from "@/components/ui/badge"
 
 import { AddToCartForm } from "./_components/add-to-cart-form"
 import { UpdateProductRatingButton } from "./_components/update-product-rating-button"
+import { Button } from "@/components/ui/button"
 
 interface ProductPageProps {
   params: {
@@ -68,14 +70,44 @@ export default async function ProductPage({ params }: ProductPageProps) {
       storeId: true,
     },
     with: {
-      category: true,
+      tags: {
+        columns: {
+          tagId: true,
+        },
+        with: {
+          tag: true,
+        }
+      },
+      variants: {
+        columns: {
+          id: true,
+        },
+        with: {
+          variant: {
+            columns: {
+              id: true,
+              name: true,
+            }
+          },
+          productVariantValues: {
+            columns: {
+              value: true,
+              price: true,
+            }
+          }
+        }
+      }
     },
     where: eq(products.id, productId),
-  })
+  });
 
   if (!product) {
     notFound()
   }
+
+  
+
+  
 
   const store = await db.query.stores.findFirst({
     columns: {
@@ -87,25 +119,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const otherProducts = store
     ? await db
-        .select({
-          id: products.id,
-          name: products.name,
-          price: products.price,
-          images: products.images,
-          category: categories.name,
-          inventory: products.inventory,
-          rating: products.rating,
-        })
-        .from(products)
-        .leftJoin(categories, eq(products.categoryId, categories.id))
-        .limit(4)
-        .where(
-          and(
-            eq(products.storeId, product.storeId),
-            not(eq(products.id, productId))
-          )
+      .select({
+        id: products.id,
+        name: products.name,
+        price: products.price,
+        images: products.images,
+        category: categories.name,
+        inventory: products.inventory,
+        rating: products.rating,
+      })
+      .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .limit(4)
+      .where(
+        and(
+          eq(products.storeId, product.storeId),
+          not(eq(products.id, productId))
         )
-        .orderBy(desc(products.inventory))
+      )
+      .orderBy(desc(products.inventory))
     : []
 
   return (
@@ -138,12 +170,35 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <p className="text-base text-muted-foreground">
             {product.inventory} in stock
           </p>
+          <div className="flex items-center space-x-2">
+            {product.tags.map((item) => (
+              <>
+                    <Badge key={item.tag.name} variant="outline" className="capitalize">
+                      {item.tag.name}
+                    </Badge>
+              </>
+            ))}
+          </div>
           <div className="flex items-center justify-between">
             <Rating rating={Math.round(product.rating / 5)} />
             <UpdateProductRatingButton
               productId={product.id}
               rating={product.rating}
             />
+          </div>
+          <div className="flex  flex-col ">
+          {product.variants.map((item) => (
+            <div key={item.id} className="flex flex-col space-y-2">
+              <span className="font-semibold mt-2">{item.variant.name}</span>
+              <div className="flex flex-wrap ">
+              {item.productVariantValues.map((sbitem) => (
+                <Button key={sbitem.value} variant="outline">
+                {sbitem.value}
+                </Button>
+              ))}
+              </div>
+            </div>
+          ))}
           </div>
           <AddToCartForm productId={productId} showBuyNow={true} />
           <Separator className="mt-5" />

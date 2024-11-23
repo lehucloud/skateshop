@@ -1,6 +1,6 @@
 import { type Store } from "@/db/schema"
 import { type SQL } from "drizzle-orm"
-import type Stripe from "stripe"
+// import type Stripe from "stripe"
 import { type ClientUploadedFileData } from "uploadthing/types"
 
 import type { Icons } from "@/components/icons"
@@ -64,7 +64,7 @@ export type DrizzleWhere<T> =
   | ((aliases: T) => SQL<T> | undefined)
   | undefined
 
-export type StripePaymentStatus = Stripe.PaymentIntent.Status
+// export type StripePaymentStatus = Stripe.PaymentIntent.Status
 
 export interface Plan {
   id: Store["plan"]

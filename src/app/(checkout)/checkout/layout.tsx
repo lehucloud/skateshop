@@ -1,13 +1,14 @@
+import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
-import { getCachedUser } from "@/lib/queries/user"
+// import { getCachedUser } from "@/lib/queries/user"
 
 export default async function CheckoutLayout({
   children,
 }: React.PropsWithChildren) {
-  const user = await getCachedUser()
+  const session = await auth()
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/signin")
   }
 

@@ -1,4 +1,5 @@
 import {
+  boolean,
   decimal,
   index,
   integer,
@@ -9,11 +10,14 @@ import {
 } from "drizzle-orm/pg-core"
 
 import { generateId } from "@/lib/id"
-import { type CheckoutItemSchema } from "@/lib/validations/cart"
+import { CartItemSchema, type CheckoutItemSchema } from "@/lib/validations/cart"
 
 import { addresses } from "./addresses"
 import { stores } from "./stores"
 import { lifecycleDates } from "./utils"
+import { payChannelEnum } from "./payments"
+
+
 
 // @see: https://github.com/jackblatch/OneStopShop/blob/main/db/schema.ts
 export const orders = pgTable(
@@ -25,18 +29,25 @@ export const orders = pgTable(
     storeId: varchar("store_id", { length: 30 })
       .references(() => stores.id, { onDelete: "cascade" })
       .notNull(),
-    items: json("items").$type<CheckoutItemSchema[] | null>().default(null),
+    items: json("items").$type<CartItemSchema[] | null>().default(null),
     quantity: integer("quantity"),
     amount: decimal("amount", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
-    stripePaymentIntentId: text("stripe_payment_intent_id").notNull(),
-    stripePaymentIntentStatus: text("stripe_payment_intent_status").notNull(),
-    name: text("name").notNull(),
-    email: text("email").notNull(),
+    payChannel: payChannelEnum("pay_channel"),
+    payClient: text("pay_client"),
+    storeOrderNo: text("store_order_no"),
+    thirdPartyOrderNo: text("third_party_order_no"),
+    status: text("status").notNull(),
+    failReason: text("fail_reason"),
+    aotuRenew: boolean("aotu_renew").default(false),
+    // stripePaymentIntentId: text("stripe_payment_intent_id").notNull(),
+    // stripePaymentIntentStatus: text("stripe_payment_intent_status").notNull(),
+    // name: text("name").notNull(),
+    // email: text("email").notNull(),
+    userId: varchar("user_id", { length: 30 }).notNull(),
     addressId: varchar("address_id", { length: 30 })
-      .references(() => addresses.id, { onDelete: "cascade" })
-      .notNull(),
+      .references(() => addresses.id, { onDelete: "cascade" }),
     ...lifecycleDates,
   },
   (table) => ({

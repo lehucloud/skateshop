@@ -2,13 +2,14 @@
 
 import { unstable_noStore as noStore, revalidatePath } from "next/cache"
 import { db } from "@/db"
-import { products } from "@/db/schema"
+import { products, productVariants } from "@/db/schema"
 import type { StoredFile } from "@/types"
 import { and, eq } from "drizzle-orm"
 import { type z } from "zod"
 
 import { getErrorMessage } from "@/lib/handle-error"
 import {
+  updateProductSchema,
   type CreateProductSchema,
   type createProductSchema,
   type updateProductRatingSchema,
@@ -91,7 +92,7 @@ export async function addProduct(
 }
 
 export async function updateProduct(
-  input: z.infer<typeof createProductSchema> & { id: string; storeId: string }
+  input: z.infer<typeof updateProductSchema> & { id: string; storeId: string }
 ) {
   try {
     const product = await db.query.products.findFirst({
@@ -162,6 +163,34 @@ export async function updateProductRating(
   }
 }
 
+export async function deleteProducts(input: { ids: string[]; storeId: string }) {
+
+  input.ids.forEach(async (id) => {
+    const product = await db.query.products.findFirst({
+      columns: {
+        id: true,
+      },
+      where: and(
+        eq(products.id, id),
+        eq(products.storeId, input.storeId)
+      ),
+    })
+
+    if (!product) {
+      throw new Error("Product not found.")
+    }
+
+    await db.delete(products).where(eq(products.id, id))
+  })
+
+  revalidatePath(`/store/${input.storeId}/products`)
+
+  return {
+    data: null,
+    error: null,
+  }
+}
+
 export async function deleteProduct(input: { id: string; storeId: string }) {
   try {
     const product = await db.query.products.findFirst({
@@ -180,7 +209,7 @@ export async function deleteProduct(input: { id: string; storeId: string }) {
 
     await db.delete(products).where(eq(products.id, input.id))
 
-    revalidatePath(`/dashboard/stores/${input.storeId}/products`)
+    revalidatePath(`/store/${input.storeId}/products`)
 
     return {
       data: null,

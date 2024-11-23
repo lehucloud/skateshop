@@ -11,6 +11,7 @@ import { customersSearchParamsSchema } from "@/lib/validations/params"
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton"
 import { DateRangePicker } from "@/components/date-range-picker"
 import { CustomersTable } from "@/components/tables/customers-table"
+import { getCustomers } from "@/lib/queries/customer"
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
@@ -57,87 +58,12 @@ export default async function CustomersPage({
   const fromDay = from ? new Date(from) : undefined
   const toDay = to ? new Date(to) : undefined
 
-  const ordersPromise = db.transaction(async (tx) => {
-    const data = await db
-      .select({
-        name: orders.name,
-        email: orders.email,
-        orderPlaced: sql<number>`count(*)`,
-        totalSpent: sql<number>`sum(${orders.amount})`,
-        createdAt: sql<string>`min(${orders.createdAt})`,
-      })
-      .from(orders)
-      .limit(limit)
-      .offset(offset)
-      .where(
-        and(
-          eq(orders.storeId, storeId),
-          // Filter by email
-          email ? like(orders.email, `%${email}%`) : undefined,
-          // Filter by createdAt
-          fromDay && toDay
-            ? and(gte(orders.createdAt, fromDay), lte(orders.createdAt, toDay))
-            : undefined
-        )
-      )
-      .groupBy(orders.email, orders.name)
-      .orderBy(
-        sort === "name.asc"
-          ? asc(orders.name)
-          : sort === "name.desc"
-            ? desc(orders.name)
-            : sort === "email.asc"
-              ? asc(orders.email)
-              : sort === "email.desc"
-                ? desc(orders.email)
-                : sort === "totalSpent.asc"
-                  ? asc(sql<number>`sum(${orders.amount})`)
-                  : sort === "totalSpent.desc"
-                    ? desc(sql<number>`sum(${orders.amount})`)
-                    : sort === "orderPlaced.asc"
-                      ? asc(sql<number>`count(*)`)
-                      : sort === "orderPlaced.desc"
-                        ? desc(sql<number>`count(*)`)
-                        : sort === "createdAt.asc"
-                          ? asc(sql<string>`min(${orders.createdAt})`)
-                          : sort === "createdAt.desc"
-                            ? desc(sql<string>`min(${orders.createdAt})`)
-                            : sql<string>`min(${orders.createdAt})`
-      )
-
-    const altCount = await db
-      .select({
-        count: sql<number>`count(*)`,
-      })
-      .from(orders)
-      .where(eq(orders.storeId, storeId))
-      .execute()
-      .then((res) => res[0]?.count ?? 0)
-
-    const count = await tx
-      .select({
-        count: sql<number>`count(*)`,
-      })
-      .from(orders)
-      .where(
-        and(
-          eq(orders.storeId, storeId),
-          // Filter by email
-          email ? like(orders.email, `%${email}%`) : undefined,
-          // Filter by createdAt
-          fromDay && toDay
-            ? and(gte(orders.createdAt, fromDay), lte(orders.createdAt, toDay))
-            : undefined
-        )
-      )
-      .groupBy(orders.email, orders.name)
-      .execute()
-      .then((res) => res[0]?.count ?? 0)
-
-    return {
-      data,
-      pageCount: Math.ceil((altCount - count) / limit),
-    }
+  const customersPromise = getCustomers({
+    storeId: params.storeId,
+    limit: limit,
+    offset: offset,
+    fromDay: fromDay,
+    toDay: toDay
   })
 
   return (
@@ -151,7 +77,7 @@ export default async function CustomersPage({
           <DataTableSkeleton columnCount={5} filterableColumnCount={0} />
         }
       >
-        <CustomersTable promise={ordersPromise} storeId={store.id} />
+        <CustomersTable promise={customersPromise} storeId={store.id} />
       </React.Suspense>
     </div>
   )

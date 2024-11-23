@@ -4,8 +4,8 @@ import { redirect } from "next/navigation"
 import { env } from "@/env.js"
 import { RocketIcon } from "@radix-ui/react-icons"
 
-import { getPlan, getPlans } from "@/lib/actions/stripe"
-import { getCachedUser, getUserUsageMetrics } from "@/lib/queries/user"
+import {  getPlan,getPlans } from "./_components/demo"
+import { getUserUsageMetrics } from "@/lib/queries/user"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   PageHeader,
@@ -16,6 +16,11 @@ import { Shell } from "@/components/shell"
 
 import { Billing } from "./_components/billing"
 import { BillingSkeleton } from "./_components/billing-skeleton"
+import { auth } from "@/lib/auth"
+import { aw } from "node_modules/@upstash/redis/zmscore-80635339"
+import { Plan, PlanWithPrice, UserPlan } from "@/types"
+// import { auth } from "@clerk/nextjs/server"
+// import { useSession } from "next-auth/react"
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
@@ -23,16 +28,21 @@ export const metadata: Metadata = {
   description: "Manage your billing and subscription plan",
 }
 
-export default async function BillingPage() {
-  const user = await getCachedUser()
 
-  if (!user) {
+export default  async function BillingPage() {
+  const session = await auth()
+
+  if (!session?.user) {
     redirect("/signin")
   }
 
-  const planPromise = getPlan({ userId: user.id })
+  const user = session.user
+
+  const planPromise = getPlan()
   const plansPromise = getPlans()
-  const usageMetricsPromise = getUserUsageMetrics({ userId: user.id })
+  const usageMetricsPromise = getUserUsageMetrics({ userId: user.id as string})
+
+  // 
 
   return (
     <Shell variant="sidebar">

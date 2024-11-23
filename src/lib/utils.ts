@@ -1,6 +1,7 @@
 import { env } from "@/env.js"
-import type { User } from "@clerk/nextjs/server"
+// import type { User } from "@clerk/nextjs/server"
 import { clsx, type ClassValue } from "clsx"
+import { User } from "next-auth"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -98,11 +99,8 @@ export function truncate(str: string, length: number) {
 }
 
 export function getUserEmail(user: User | null) {
-  const email =
-    user?.emailAddresses?.find((e) => e.id === user.primaryEmailAddressId)
-      ?.emailAddress ?? ""
 
-  return email
+  return user?.email
 }
 
 export function isMacOs() {

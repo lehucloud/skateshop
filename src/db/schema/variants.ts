@@ -53,6 +53,9 @@ export const productVariants = pgTable(
     productId: varchar("product_id", { length: 30 })
       .references(() => products.id, { onDelete: "cascade" })
       .notNull(),
+    productVariantId: varchar("product_variant_id", { length: 30 })
+      .references(() => variants.id, { onDelete: "cascade" })
+      .notNull(),
     variantId: varchar("variant_id", { length: 30 })
       .references(() => variants.id, { onDelete: "cascade" })
       .notNull(),
@@ -112,7 +115,7 @@ export const productVariantValuesRelations = relations(
   ({ one }) => ({
     productVariant: one(productVariants, {
       fields: [productVariantValues.productVariantId],
-      references: [productVariants.productId],
+      references: [productVariants.id],
     }),
   })
 )

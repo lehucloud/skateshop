@@ -7,7 +7,7 @@ import { env } from "@/env.js"
 import type { SearchParams } from "@/types"
 import { and, asc, desc, eq, inArray, like, sql } from "drizzle-orm"
 
-import { getCachedUser } from "@/lib/queries/user"
+// import { getCachedUser } from "@/lib/queries/user"
 import { getUserEmail } from "@/lib/utils"
 import { purchasesSearchParamsSchema } from "@/lib/validations/params"
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton"
@@ -18,6 +18,8 @@ import {
 } from "@/components/page-header"
 import { Shell } from "@/components/shell"
 import { PurchasesTable } from "@/components/tables/purchases-table"
+import { useSession } from "next-auth/react"
+import { auth } from "@/lib/auth"
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
@@ -34,13 +36,15 @@ export default async function PurchasesPage({
   const { page, per_page, sort, store, status } =
     purchasesSearchParamsSchema.parse(searchParams)
 
-  const user = await getCachedUser()
+    const session = await auth()
 
-  if (!user) {
-    redirect("/signin")
-  }
-
-  const email = getUserEmail(user)
+    if (!session?.user) {
+      redirect("/signin")
+    }
+  
+    const user = session.user
+  
+  const email = getUserEmail(user) as string
 
   // Fallback page for invalid page numbers
   const fallbackPage = isNaN(page) || page < 1 ? 1 : page

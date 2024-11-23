@@ -1,11 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Elements } from "@stripe/react-stripe-js"
-import { type StripeElementsOptions } from "@stripe/stripe-js"
-
-import { getStripe } from "@/lib/get-stripe"
-import { cn } from "@/lib/utils"
+import { PayemntChannel, PaymentClient } from "@/lib/types"
 
 /**
  * See the Stripe documentation for more information:
@@ -14,52 +10,36 @@ import { cn } from "@/lib/utils"
 
 interface CheckoutShellProps
   extends React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>> {
-  storeStripeAccountId: string
-  paymentIntentPromise: Promise<{
-    data: {
-      clientSecret: string | null
-    } | null
+  storeId: string
+  client: PaymentClient
+  channel: PayemntChannel
+  paymentPromise: Promise<{
+    data: any | null
     error: string | null
   }>
 }
 
 export function CheckoutShell({
-  children,
-  storeStripeAccountId,
-  paymentIntentPromise,
+  storeId,
+  client,
+  channel,
+  paymentPromise,
   className,
   ...props
 }: CheckoutShellProps) {
-  const stripePromise = React.useMemo(
-    () => getStripe(storeStripeAccountId),
-    [storeStripeAccountId]
-  )
 
-  /**
-   * Calling createPaymentIntentAction at the client component to avoid stripe authentication error in server action
-   */
-  const { data, error } = React.use(paymentIntentPromise)
+  const { data, error } = React.use(paymentPromise)
 
-  if (!data?.clientSecret || error) {
-    return (
-      <section className={cn("size-full", className)} {...props}>
-        <div className="size-full bg-white" />
-      </section>
-    )
-  }
-
-  const options: StripeElementsOptions = {
-    clientSecret: data.clientSecret,
-    appearance: {
-      theme: "stripe",
-    },
-  }
+  React.useEffect(() => {
+    window.location.href = data
+  }, [data])
 
   return (
-    <section className={cn("size-full", className)} {...props}>
-      <Elements options={options} stripe={stripePromise}>
-        {children}
-      </Elements>
-    </section>
+    <div className={className} {...props}>
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent" />
+        <span className="ml-2">正在跳转到支付页面...</span>
+      </div>
+    </div>
   )
-}
+};

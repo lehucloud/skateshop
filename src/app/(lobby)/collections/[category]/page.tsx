@@ -11,6 +11,7 @@ import {
   PageHeaderHeading,
 } from "@/components/page-header"
 import { Shell } from "@/components/shell"
+import { getStores } from "@/lib/queries/store"
 
 interface CategoryPageProps {
   params: {
@@ -33,7 +34,7 @@ export default async function CategoryPage({
 }: CategoryPageProps) {
   const category = decodeURIComponent(params.category)
 
-  const productsTransaction = await getProducts(searchParams)
+  const productsTransaction = await getStores(searchParams)
 
   return (
     <Shell>
@@ -43,7 +44,6 @@ export default async function CategoryPage({
           {`Buy ${category} from the best stores`}
         </PageHeaderDescription>
       </PageHeader>
-      <AlertCard />
     </Shell>
   )
 }

@@ -66,12 +66,12 @@ export default async function SubcategoryPage({
           {`Buy the best ${unslugify(subcategory)}`}
         </PageHeaderDescription>
       </PageHeader>
-      {/* <Products
+      <Products
         products={productsTransaction.data}
         pageCount={productsTransaction.pageCount}
         stores={storesTransaction.data}
         storePageCount={storesTransaction.pageCount}
-      /> */}
+      />
     </Shell>
   )
 }

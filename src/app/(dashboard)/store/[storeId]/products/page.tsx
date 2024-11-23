@@ -12,7 +12,8 @@ import { storesProductsSearchParamsSchema } from "@/lib/validations/params"
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton"
 import { DateRangePicker } from "@/components/date-range-picker"
 import { ProductsTable } from "@/components/tables/products-table"
-
+import { getProducts , getCategories} from "@/lib/queries/product"
+import { Skeleton } from "@/components/ui/skeleton"
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
   title: "Products",
@@ -65,99 +66,31 @@ export default async function ProductsPage({
   const fromDay = from ? new Date(from) : undefined
   const toDay = to ? new Date(to) : undefined
 
-  // Transaction is used to ensure both queries are executed in a single transaction
-  const productsPromise = db.transaction(async (tx) => {
-    noStore()
-    try {
-      const data = await tx
-        .select({
-          id: products.id,
-          name: products.name,
-          category: categories.name,
-          price: products.price,
-          inventory: products.inventory,
-          rating: products.rating,
-          createdAt: products.createdAt,
-        })
-        .from(products)
-        .limit(limit)
-        .offset(offset)
-        .leftJoin(categories, eq(products.categoryId, categories.id))
-        .where(
-          and(
-            eq(products.storeId, storeId),
-            // Filter by name
-            name ? like(products.name, `%${name}%`) : undefined,
-            // Filter by category
-            categoryIds.length > 0
-              ? inArray(products.categoryId, categoryIds)
-              : undefined,
-            // Filter by createdAt
-            fromDay && toDay
-              ? and(
-                  gte(products.createdAt, fromDay),
-                  lte(products.createdAt, toDay)
-                )
-              : undefined
-          )
-        )
-        .orderBy(
-          column && column in products
-            ? order === "asc"
-              ? asc(products[column])
-              : desc(products[column])
-            : desc(products.createdAt)
-        )
+  const productsPromise = getProducts(searchParams);
 
-      const count = await tx
-        .select({
-          count: sql<number>`count(${products.id})`,
-        })
-        .from(products)
-        .where(
-          and(
-            eq(products.storeId, storeId),
-            // Filter by name
-            name ? like(products.name, `%${name}%`) : undefined,
-            // Filter by category
-            categoryIds.length > 0
-              ? inArray(products.categoryId, categoryIds)
-              : undefined,
-            // Filter by createdAt
-            fromDay && toDay
-              ? and(
-                  gte(products.createdAt, fromDay),
-                  lte(products.createdAt, toDay)
-                )
-              : undefined
-          )
-        )
-        .then((res) => res[0]?.count ?? 0)
+  // convert AwaitedProduct
 
-      const pageCount = Math.ceil(count / limit)
-
-      return {
-        data,
-        pageCount,
-      }
-    } catch (err) {
-      console.error(err)
-      return {
-        data: [],
-        pageCount: 0,
-      }
-    }
-  })
+  const categoriesPromise = getCategories();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 xs:flex-row xs:items-center xs:justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Products</h2>
-        <DateRangePicker align="end" />
+        <React.Suspense fallback={<Skeleton className="h-7 w-52" />}>
+          <DateRangePicker
+            triggerSize="sm"
+            triggerClassName="ml-auto w-56 sm:w-60"
+            align="end"
+          />
+          {/* <DateRangePicker align="end" /> */}
+        </React.Suspense>
       </div>
-      {/* <React.Suspense fallback={<DataTableSkeleton columnCount={6} />}>
-        <ProductsTable promise={productsPromise} storeId={storeId} />
-      </React.Suspense> */}
+      <React.Suspense fallback={<DataTableSkeleton columnCount={6}  searchableColumnCount={1}
+              filterableColumnCount={2}
+              cellWidths={["10rem", "40rem", "12rem", "12rem", "8rem", "8rem"]}
+              shrinkZero/>}>
+        <ProductsTable promise={productsPromise} storeId={storeId} categoriesPromise={categoriesPromise}  />
+      </React.Suspense>
     </div>
   )
 }

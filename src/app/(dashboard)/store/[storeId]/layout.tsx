@@ -2,7 +2,7 @@ import * as React from "react"
 import { redirect } from "next/navigation"
 
 import { getStoresByUserId } from "@/lib/queries/store"
-import { getCachedUser, getUserPlanMetrics } from "@/lib/queries/user"
+import { getUserPlanMetrics } from "@/lib/queries/user"
 import { Skeleton } from "@/components/ui/skeleton"
 
 import { SidebarProvider } from "../../../../components/layouts/sidebar-provider"
@@ -10,6 +10,7 @@ import { DashboardHeader } from "./_components/dashboard-header"
 import { DashboardSidebar } from "./_components/dashboard-sidebar"
 import { DashboardSidebarSheet } from "./_components/dashboard-sidebar-sheet"
 import { StoreSwitcher } from "./_components/store-switcher"
+import { auth } from "@/lib/auth"
 
 interface DashboardStoreLayoutProps {
   params: {
@@ -24,14 +25,16 @@ export default async function DashboardStoreLayout({
 }: DashboardStoreLayoutProps) {
   const storeId = decodeURIComponent(params.storeId)
 
-  const user = await getCachedUser()
+  const session = await auth()
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/signin")
   }
 
-  const storesPromise = getStoresByUserId({ userId: user.id })
-  const planMetricsPromise = getUserPlanMetrics({ userId: user.id })
+  const user = session.user
+
+  const storesPromise = getStoresByUserId({ userId: user.id as string})
+  const planMetricsPromise = getUserPlanMetrics({ userId: user.id as string})
 
   return (
     <SidebarProvider>
@@ -42,7 +45,7 @@ export default async function DashboardStoreLayout({
         >
           <React.Suspense fallback={<Skeleton className="h-10 w-full" />}>
             <StoreSwitcher
-              userId={user.id}
+              userId={user.id as string}
               storesPromise={storesPromise}
               planMetricsPromise={planMetricsPromise}
             />
@@ -54,7 +57,7 @@ export default async function DashboardStoreLayout({
               <DashboardSidebar storeId={storeId}>
                 <React.Suspense fallback={<Skeleton className="h-10 w-full" />}>
                   <StoreSwitcher
-                    userId={user.id}
+                    userId={user.id as string}
                     storesPromise={storesPromise}
                     planMetricsPromise={planMetricsPromise}
                   />

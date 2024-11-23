@@ -22,7 +22,6 @@ export const metadata: Metadata = {
 
 export default async function CartPage() {
   const uniqueStoreIds = await getUniqueStoreIds()
-
   return (
     <Shell>
       <PageHeader

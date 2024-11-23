@@ -23,7 +23,7 @@ export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
     >
       {items.map((item, index) => {
         const Icon = Icons[item.icon ?? "chevronLeft"]
-
+        
         if (!item.href) {
           return (
             <span

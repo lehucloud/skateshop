@@ -4,12 +4,13 @@ export interface DashboardConfig {
   sidebarNav: SidebarNavItem[]
 }
 
+
 export const dashboardConfig: DashboardConfig = {
   sidebarNav: [
     {
       title: "Dashboard",
-      href: "/dashboard/stores",
-      icon: "store",
+      href: "/dashboard",
+      icon: "dashboard",
       items: [],
     },
     {
@@ -18,18 +19,18 @@ export const dashboardConfig: DashboardConfig = {
       icon: "credit",
       items: [],
     },
-    {
-      title: "Purchases",
-      href: "/dashboard/purchases",
-      icon: "dollarSign",
-      items: [],
-    },
-    {
-      title: "Account",
-      href: "/dashboard/account",
-      icon: "avatar",
-      items: [],
-    },
+    // {
+    //   title: "Purchases",
+    //   href: "/dashboard/purchases",
+    //   icon: "dollarSign",
+    //   items: [],
+    // },
+    // {
+    //   title: "Account",
+    //   href: "/dashboard/account",
+    //   icon: "avatar",
+    //   items: [],
+    // },
     {
       title: "Settings",
       href: "/dashboard/settings",

@@ -15,18 +15,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { DataTable } from "@/components/data-table/data-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
+import { useDataTable } from "@/hooks/use-data-table"
 
-interface AwaitedCustomer {
-  email: string | null
-  name: string | null
-  orderPlaced: number
-  totalSpent: number
-  createdAt: string
-}
+import { type CustomUser } from "@/db/schema"
 
 interface CustomersTableProps {
   promise: Promise<{
-    data: AwaitedCustomer[]
+    data: CustomUser[]
     pageCount: number
   }>
   storeId: string
@@ -34,9 +29,9 @@ interface CustomersTableProps {
 
 export function CustomersTable({ promise, storeId }: CustomersTableProps) {
   const { data, pageCount } = React.use(promise)
-
+  
   // Memoize the columns so they don't re-render on every render
-  const columns = React.useMemo<ColumnDef<AwaitedCustomer, unknown>[]>(
+  const columns = React.useMemo<ColumnDef<CustomUser, unknown>[]>(
     () => [
       {
         accessorKey: "name",
@@ -50,22 +45,22 @@ export function CustomersTable({ promise, storeId }: CustomersTableProps) {
           <DataTableColumnHeader column={column} title="Email" />
         ),
       },
-      {
-        accessorKey: "totalSpent",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Total Spent" />
-        ),
-        cell: ({ cell }) =>
-          formatPrice(cell.getValue() as number, {
-            notation: "standard",
-          }),
-      },
-      {
-        accessorKey: "orderPlaced",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Order Placed" />
-        ),
-      },
+      // {
+      //   accessorKey: "totalSpent",
+      //   header: ({ column }) => (
+      //     <DataTableColumnHeader column={column} title="Total Spent" />
+      //   ),
+      //   cell: ({ cell }) =>
+      //     formatPrice(cell.getValue() as number, {
+      //       notation: "standard",
+      //     }),
+      // },
+      // {
+      //   accessorKey: "orderPlaced",
+      //   header: ({ column }) => (
+      //     <DataTableColumnHeader column={column} title="Order Placed" />
+      //   ),
+      // },
       {
         accessorKey: "createdAt",
         header: ({ column }) => (
@@ -107,18 +102,26 @@ export function CustomersTable({ promise, storeId }: CustomersTableProps) {
     [storeId]
   )
 
-  return null
+  
+  const { table } = useDataTable({
+    data,
+    columns,
+    pageCount,
+    filterFields: [
+      {
+        value: "name",
+        label: "Name",
+      },
+      // {
+      //   value: "category",
+      //   label: "Category",
+      //   options: products.category.enumValues.map((category) => ({
+      //     label: `${category.charAt(0).toUpperCase()}${category.slice(1)}`,
+      //     value: category,
+      //   })),
+      // },
+    ],
+  })
 
-  // return (
-  //   <DataTable
-  //     data={data}
-  //     pageCount={pageCount}
-  //     searchableColumns={[
-  //       {
-  //         id: "email",
-  //         title: "emails",
-  //       },
-  //     ]}
-  //   />
-  // )
+  return <DataTable table={table} />
 }

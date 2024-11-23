@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { useSignUp } from "@clerk/nextjs"
+// import { useSignUp } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -22,12 +22,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Icons } from "@/components/icons"
 import { PasswordInput } from "@/components/password-input"
+import { signIn } from "next-auth/react"
 
 type Inputs = z.infer<typeof authSchema>
 
 export function SignUpForm() {
   const router = useRouter()
-  const { isLoaded, signUp } = useSignUp()
+  // const { isLoaded, signUp } = useSignUp()
   const [loading, setLoading] = React.useState(false)
 
   // react-hook-form
@@ -40,20 +41,22 @@ export function SignUpForm() {
   })
 
   async function onSubmit(data: Inputs) {
-    if (!isLoaded) return
-
+    if (!loading) return
+   
     setLoading(true)
 
     try {
-      await signUp.create({
-        emailAddress: data.email,
-        password: data.password,
-      })
+      // await signUp.create({
+      //   emailAddress: data.email,
+      //   password: data.password,
+      // })
+
+      await signIn("credentials", {email: data.email, password: data.password, redirect: false})
 
       // Send email verification code
-      await signUp.prepareEmailAddressVerification({
-        strategy: "email_code",
-      })
+      // await signUp.prepareEmailAddressVerification({
+      //   strategy: "email_code",
+      // })
 
       router.push("/signup/verify-email")
       toast.message("Check your email", {

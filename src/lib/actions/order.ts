@@ -7,6 +7,7 @@ import {
   addresses,
   carts,
   categories,
+  NewOrder,
   orders,
   payments,
   products,
@@ -26,176 +27,224 @@ import {
   lte,
   sql,
 } from "drizzle-orm"
-import type Stripe from "stripe"
+// import type Stripe from "stripe"
 import { z } from "zod"
 
 import {
+  CartItemSchema,
   checkoutItemSchema,
   type CartLineItemSchema,
   type CheckoutItemSchema,
 } from "@/lib/validations/cart"
-import type { getOrderLineItemsSchema } from "@/lib/validations/order"
+import type { CreateOrderSchema, getOrderLineItemsSchema } from "@/lib/validations/order"
 import { ordersSearchParamsSchema } from "@/lib/validations/params"
+import exp from "constants"
 
-export async function getOrderLineItems(
-  input: z.infer<typeof getOrderLineItemsSchema> & {
-    paymentIntent?: Stripe.Response<Stripe.PaymentIntent> | null
-  }
-): Promise<CartLineItemSchema[]> {
-  try {
-    const safeParsedItems = z
-      .array(checkoutItemSchema)
-      .safeParse(JSON.parse(input.items ?? "[]"))
+// export async function getOrderLineItems(
+//   input: z.infer<typeof getOrderLineItemsSchema> & {
+//     // paymentIntent?: Stripe.Response<Stripe.PaymentIntent> | null
+//     paymentIntent?: null
+//   }
+// ): Promise<CartLineItemSchema[]> {
+  // try {
+  //   const safeParsedItems = z
+  //     .array(checkoutItemSchema)
+  //     .safeParse(JSON.parse(input.items ?? "[]"))
 
-    if (!safeParsedItems.success) {
-      throw new Error("Could not parse items.")
-    }
+  //   if (!safeParsedItems.success) {
+  //     throw new Error("Could not parse items.")
+  //   }
 
-    const lineItems = await db
-      .select({
-        id: products.id,
-        name: products.name,
-        images: products.images,
-        price: products.price,
-        inventory: products.inventory,
-        storeId: products.storeId,
-        categoryId: products.categoryId,
-        subcategoryId: products.subcategoryId,
-      })
-      .from(products)
-      .leftJoin(subcategories, eq(products.subcategoryId, subcategories.id))
-      .leftJoin(categories, eq(products.categoryId, categories.id))
-      .where(
-        inArray(
-          products.id,
-          safeParsedItems.data.map((item) => item.productId)
-        )
-      )
-      .groupBy(products.id)
-      .orderBy(desc(products.createdAt))
-      .execute()
-      .then((items) => {
-        return items.map((item) => {
-          const quantity = safeParsedItems.data.find(
-            (checkoutItem) => checkoutItem.productId === item.id
-          )?.quantity
+  //   const lineItems = await db
+  //     .select({
+  //       id: products.id,
+  //       name: products.name,
+  //       images: products.images,
+  //       price: products.price,
+  //       inventory: products.inventory,
+  //       storeId: products.storeId,
+  //       categoryId: products.categoryId,
+  //       subcategoryId: products.subcategoryId,
+  //     })
+  //     .from(products)
+  //     .leftJoin(subcategories, eq(products.subcategoryId, subcategories.id))
+  //     .leftJoin(categories, eq(products.categoryId, categories.id))
+  //     .where(
+  //       inArray(
+  //         products.id,
+  //         safeParsedItems.data.map((item) => item.productId)
+  //       )
+  //     )
+  //     .groupBy(products.id)
+  //     .orderBy(desc(products.createdAt))
+  //     .execute()
+  //     .then((items) => {
+  //       return items.map((item) => {
+  //         const quantity = safeParsedItems.data.find(
+  //           (checkoutItem) => checkoutItem.productId === item.id
+  //         )?.quantity
 
-          return {
-            ...item,
-            quantity: quantity ?? 0,
-          }
-        })
-      })
+  //         return {
+  //           ...item,
+  //           quantity: quantity ?? 0,
+  //         }
+  //       })
+  //     })
 
     // Temporary workaround for payment_intent.succeeded webhook event not firing in production
     // TODO: Remove this once the webhook is working
-    if (input.paymentIntent?.status === "succeeded") {
-      const cartId = String(cookies().get("cartId")?.value)
+    // if (input.paymentIntent?.status === "succeeded") {
+    //   const cartId = String(cookies().get("cartId")?.value)
 
-      const cart = await db.query.carts.findFirst({
-        columns: {
-          closed: true,
-          paymentIntentId: true,
-          clientSecret: true,
-        },
-        where: eq(carts.id, cartId),
-      })
+    //   const cart = await db.query.carts.findFirst({
+    //     columns: {
+    //       closed: true,
+    //       paymentIntentId: true,
+    //       clientSecret: true,
+    //     },
+    //     where: eq(carts.id, cartId),
+    //   })
 
-      if (!cart || cart.closed) {
-        return lineItems
-      }
+    //   if (!cart || cart.closed) {
+    //     return lineItems
+    //   }
 
-      if (!cart.clientSecret || !cart.paymentIntentId) {
-        return lineItems
-      }
+    //   if (!cart.clientSecret || !cart.paymentIntentId) {
+    //     return lineItems
+    //   }
 
-      const payment = await db.query.payments.findFirst({
-        columns: {
-          storeId: true,
-          stripeAccountId: true,
-        },
-        where: eq(payments.storeId, input.storeId),
-      })
+    //   const payment = await db.query.payments.findFirst({
+    //     columns: {
+    //       storeId: true,
+    //       stripeAccountId: true,
+    //     },
+    //     where: eq(payments.storeId, input.storeId),
+    //   })
 
-      if (!payment?.stripeAccountId) {
-        return lineItems
-      }
+    //   if (!payment?.stripeAccountId) {
+    //     return lineItems
+    //   }
 
       // Create new address in DB
-      const stripeAddress = input.paymentIntent.shipping?.address
+      // const stripeAddress = input.paymentIntent.shipping?.address
 
-      const newAddress = await db
-        .insert(addresses)
-        .values({
-          line1: stripeAddress?.line1,
-          line2: stripeAddress?.line2,
-          city: stripeAddress?.city,
-          state: stripeAddress?.state,
-          country: stripeAddress?.country,
-          postalCode: stripeAddress?.postal_code,
-        })
-        .returning({ insertedId: addresses.id })
+      // const newAddress = await db
+      //   .insert(addresses)
+      //   .values({
+      //     line1: stripeAddress?.line1,
+      //     line2: stripeAddress?.line2,
+      //     city: stripeAddress?.city,
+      //     state: stripeAddress?.state,
+      //     country: stripeAddress?.country,
+      //     postalCode: stripeAddress?.postal_code,
+      //   })
+      //   .returning({ insertedId: addresses.id })
 
-      if (!newAddress[0]?.insertedId) throw new Error("No address created.")
+      // if (!newAddress[0]?.insertedId) throw new Error("No address created.")
+
+      // Create new order in db
+      // await db.insert(orders).values({
+      //   storeId: payment.storeId,
+      //   items: input.items as unknown as CheckoutItemSchema[],
+      //   quantity: safeParsedItems.data.reduce(
+      //     (acc, item) => acc + item.quantity,
+      //     0
+      //   ),
+      //   amount: String(Number(input.paymentIntent.amount) / 100),
+      //   stripePaymentIntentId: input.paymentIntent.id,
+      //   stripePaymentIntentStatus: input.paymentIntent.status,
+      //   name: input.paymentIntent.shipping?.name ?? "",
+      //   email: input.paymentIntent.receipt_email ?? "",
+      //   addressId: newAddress[0].insertedId,
+      // })
+
+      // Update product inventory in db
+    //   for (const item of safeParsedItems.data) {
+    //     const product = await db.query.products.findFirst({
+    //       columns: {
+    //         id: true,
+    //         inventory: true,
+    //       },
+    //       where: eq(products.id, item.productId),
+    //     })
+
+    //     if (!product) {
+    //       return lineItems
+    //     }
+
+    //     const inventory = product.inventory - item.quantity
+
+    //     if (inventory < 0) {
+    //       return lineItems
+    //     }
+
+    //     await db
+    //       .update(products)
+    //       .set({
+    //         inventory: product.inventory - item.quantity,
+    //       })
+    //       .where(eq(products.id, item.productId))
+    //   }
+
+    //   await db
+    //     .update(carts)
+    //     .set({
+    //       closed: true,
+    //       items: [],
+    //     })
+    //     .where(eq(carts.paymentIntentId, cart.paymentIntentId))
+    // }
+
+    // return lineItems
+  // } catch (err) {
+    // return []
+  // }
+// }
+export async function getOrderByStoreOrderNo(input: { storeOrderNo: string }) {
+    return await db.query.orders.findFirst({
+      where: eq(orders.storeOrderNo, input.storeOrderNo),
+    });
+}
+
+export async function updateOrderByPayStatus(input: { status: string; reason: string; thirdPartyOrderNo: string; orderId: string}) {
+  noStore()
+  try {
+    await db
+      .update(orders)
+      .set({
+        status:  input.status,
+        failReason:  input.reason,
+        thirdPartyOrderNo: input.thirdPartyOrderNo,
+      })
+      .where(eq(orders.storeOrderNo, input.orderId))
+      
+      //
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export async function addOrder(input: CreateOrderSchema) {
+  noStore()
+  try {
 
       // Create new order in db
       await db.insert(orders).values({
-        storeId: payment.storeId,
-        items: input.items as unknown as CheckoutItemSchema[],
-        quantity: safeParsedItems.data.reduce(
-          (acc, item) => acc + item.quantity,
-          0
-        ),
-        amount: String(Number(input.paymentIntent.amount) / 100),
-        stripePaymentIntentId: input.paymentIntent.id,
-        stripePaymentIntentStatus: input.paymentIntent.status,
-        name: input.paymentIntent.shipping?.name ?? "",
-        email: input.paymentIntent.receipt_email ?? "",
-        addressId: newAddress[0].insertedId,
+        storeId: input.storeId,
+        items: input.items as CartItemSchema[],
+        quantity: input.quantity,
+        amount: input.amount.toString(),
+        payClient: input.payClient,
+        storeOrderNo: input.storeOrderNo,
+        status: 'pending',
+        userId: input.userId,
       })
-
-      // Update product inventory in db
-      for (const item of safeParsedItems.data) {
-        const product = await db.query.products.findFirst({
-          columns: {
-            id: true,
-            inventory: true,
-          },
-          where: eq(products.id, item.productId),
-        })
-
-        if (!product) {
-          return lineItems
-        }
-
-        const inventory = product.inventory - item.quantity
-
-        if (inventory < 0) {
-          return lineItems
-        }
-
-        await db
-          .update(products)
-          .set({
-            inventory: product.inventory - item.quantity,
-          })
-          .where(eq(products.id, item.productId))
-      }
-
-      await db
-        .update(carts)
-        .set({
-          closed: true,
-          items: [],
-        })
-        .where(eq(carts.paymentIntentId, cart.paymentIntentId))
-    }
-
-    return lineItems
   } catch (err) {
-    return []
+    console.error(err)
   }
 }
+
+
 
 export async function getStoreOrders(input: {
   storeId: string
@@ -203,101 +252,101 @@ export async function getStoreOrders(input: {
 }) {
   noStore()
   try {
-    const { page, per_page, sort, customer, status, from, to } =
-      ordersSearchParamsSchema.parse(input.searchParams)
+    // const { page, per_page, sort, customer, status, from, to } =
+    //   ordersSearchParamsSchema.parse(input.searchParams)
 
-    // Fallback page for invalid page numbers
-    const fallbackPage = isNaN(page) || page < 1 ? 1 : page
-    // Number of items per page
-    const limit = isNaN(per_page) ? 10 : per_page
-    // Number of items to skip
-    const offset = fallbackPage > 0 ? (fallbackPage - 1) * limit : 0
-    // Column and order to sort by
-    const [column, order] = (sort.split(".") as [
-      keyof Order | undefined,
-      "asc" | "desc" | undefined,
-    ]) ?? ["createdAt", "desc"]
+    // // Fallback page for invalid page numbers
+    // const fallbackPage = isNaN(page) || page < 1 ? 1 : page
+    // // Number of items per page
+    // const limit = isNaN(per_page) ? 10 : per_page
+    // // Number of items to skip
+    // const offset = fallbackPage > 0 ? (fallbackPage - 1) * limit : 0
+    // // Column and order to sort by
+    // const [column, order] = (sort.split(".") as [
+    //   keyof Order | undefined,
+    //   "asc" | "desc" | undefined,
+    // ]) ?? ["createdAt", "desc"]
 
-    const statuses = status ? status.split(".") : []
+    // const statuses = status ? status.split(".") : []
 
-    const fromDay = from ? new Date(from) : undefined
-    const toDay = to ? new Date(to) : undefined
+    // const fromDay = from ? new Date(from) : undefined
+    // const toDay = to ? new Date(to) : undefined
 
-    // Transaction is used to ensure both queries are executed in a single transaction
-    return await db.transaction(async (tx) => {
-      const data = await tx
-        .select({
-          id: orders.id,
-          storeId: orders.storeId,
-          quantity: orders.quantity,
-          amount: orders.amount,
-          paymentIntentId: orders.stripePaymentIntentId,
-          status: orders.stripePaymentIntentStatus,
-          customer: orders.email,
-          createdAt: orders.createdAt,
-        })
-        .from(orders)
-        .limit(limit)
-        .offset(offset)
-        .where(
-          and(
-            eq(orders.storeId, input.storeId),
-            // Filter by email
-            customer ? like(orders.email, `%${customer}%`) : undefined,
-            // Filter by status
-            statuses.length > 0
-              ? inArray(orders.stripePaymentIntentStatus, statuses)
-              : undefined,
-            // Filter by createdAt
-            fromDay && toDay
-              ? and(
-                  gte(orders.createdAt, fromDay),
-                  lte(orders.createdAt, toDay)
-                )
-              : undefined
-          )
-        )
-        .orderBy(
-          column && column in orders
-            ? order === "asc"
-              ? asc(orders[column])
-              : desc(orders[column])
-            : desc(orders.createdAt)
-        )
+    // // Transaction is used to ensure both queries are executed in a single transaction
+    // return await db.transaction(async (tx) => {
+    //   const data = await tx
+    //     .select({
+    //       id: orders.id,
+    //       storeId: orders.storeId,
+    //       quantity: orders.quantity,
+    //       amount: orders.amount,
+    //       paymentIntentId: orders.stripePaymentIntentId,
+    //       status: orders.stripePaymentIntentStatus,
+    //       customer: orders.email,
+    //       createdAt: orders.createdAt,
+    //     })
+    //     .from(orders)
+    //     .limit(limit)
+    //     .offset(offset)
+    //     .where(
+    //       and(
+    //         eq(orders.storeId, input.storeId),
+    //         // Filter by email
+    //         customer ? like(orders.email, `%${customer}%`) : undefined,
+    //         // Filter by status
+    //         statuses.length > 0
+    //           ? inArray(orders.stripePaymentIntentStatus, statuses)
+    //           : undefined,
+    //         // Filter by createdAt
+    //         fromDay && toDay
+    //           ? and(
+    //               gte(orders.createdAt, fromDay),
+    //               lte(orders.createdAt, toDay)
+    //             )
+    //           : undefined
+    //       )
+    //     )
+    //     .orderBy(
+    //       column && column in orders
+    //         ? order === "asc"
+    //           ? asc(orders[column])
+    //           : desc(orders[column])
+    //         : desc(orders.createdAt)
+    //     )
 
-      const count = await tx
-        .select({
-          count: sql`count(*)`.mapWith(Number),
-        })
-        .from(orders)
-        .where(
-          and(
-            eq(orders.storeId, input.storeId),
-            // Filter by email
-            customer ? like(orders.email, `%${customer}%`) : undefined,
-            // Filter by status
-            statuses.length > 0
-              ? inArray(orders.stripePaymentIntentStatus, statuses)
-              : undefined,
-            // Filter by createdAt
-            fromDay && toDay
-              ? and(
-                  gte(orders.createdAt, fromDay),
-                  lte(orders.createdAt, toDay)
-                )
-              : undefined
-          )
-        )
-        .execute()
-        .then((res) => res[0]?.count ?? 0)
+    //   const count = await tx
+    //     .select({
+    //       count: sql`count(*)`.mapWith(Number),
+    //     })
+    //     .from(orders)
+    //     .where(
+    //       and(
+    //         eq(orders.storeId, input.storeId),
+    //         // Filter by email
+    //         customer ? like(orders.email, `%${customer}%`) : undefined,
+    //         // Filter by status
+    //         statuses.length > 0
+    //           ? inArray(orders.stripePaymentIntentStatus, statuses)
+    //           : undefined,
+    //         // Filter by createdAt
+    //         fromDay && toDay
+    //           ? and(
+    //               gte(orders.createdAt, fromDay),
+    //               lte(orders.createdAt, toDay)
+    //             )
+    //           : undefined
+    //       )
+    //     )
+    //     .execute()
+    //     .then((res) => res[0]?.count ?? 0)
 
-      const pageCount = Math.ceil(count / limit)
+    //   const pageCount = Math.ceil(count / limit)
 
-      return {
-        data,
-        pageCount,
-      }
-    })
+    //   return {
+    //     data,
+    //     pageCount,
+    //   }
+    // })
   } catch (err) {
     console.error(err)
     return {
@@ -422,8 +471,6 @@ export async function getCustomers(input: {
 
       const customers = await tx
         .select({
-          email: orders.email,
-          name: orders.name,
           totalSpent: sql<number>`sum(${orders.amount})`,
         })
         .from(orders)
@@ -440,12 +487,12 @@ export async function getCustomers(input: {
               : undefined
           )
         )
-        .groupBy(orders.email, orders.name, orders.createdAt)
+        .groupBy( orders.createdAt)
         .orderBy(desc(orders.createdAt))
 
       const customerCount = await tx
         .select({
-          count: countDistinct(orders.email),
+          count: countDistinct(orders.userId),
         })
         .from(orders)
         .where(

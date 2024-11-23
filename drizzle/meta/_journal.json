@@ -1,1 +1,34 @@
-{"version":"5","dialect":"mysql","entries":[]}
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1731379591536,
+      "tag": "0000_slimy_luminals",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1731379659080,
+      "tag": "0001_broken_grey_gargoyle",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1731852337891,
+      "tag": "0002_confused_old_lace",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1732370442671,
+      "tag": "0003_fuzzy_iron_patriot",
+      "breakpoints": true
+    }
+  ]
+}

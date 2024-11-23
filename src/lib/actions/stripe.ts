@@ -309,51 +309,51 @@ export async function managePlan(input: z.infer<typeof managePlanSchema>) {
   try {
     const billingUrl = absoluteUrl("/dashboard/billing")
 
-    const user = await currentUser()
+//     const user = await currentUser()
 
-    if (!user) {
-      throw new Error("User not found.")
-    }
+//     if (!user) {
+//       throw new Error("User not found.")
+//     }
 
-    const email = getUserEmail(user)
+//     const email = getUserEmail(user)
 
-    // If the user is already subscribed to a plan, we redirect them to the Stripe billing portal
-    if (input.isSubscribed && input.stripeCustomerId && input.isCurrentPlan) {
-      const stripeSession = await stripe.billingPortal.sessions.create({
-        customer: input.stripeCustomerId,
-        return_url: billingUrl,
-      })
+//     // If the user is already subscribed to a plan, we redirect them to the Stripe billing portal
+//     if (input.isSubscribed && input.stripeCustomerId && input.isCurrentPlan) {
+//       const stripeSession = await stripe.billingPortal.sessions.create({
+//         customer: input.stripeCustomerId,
+//         return_url: billingUrl,
+//       })
 
-      return {
-        data: {
-          url: stripeSession.url,
-        },
-        error: null,
-      }
-    }
+//       return {
+//         data: {
+//           url: stripeSession.url,
+//         },
+//         error: null,
+//       }
+//     }
 
     // If the user is not subscribed to a plan, we create a Stripe Checkout session
-    const stripeSession = await stripe.checkout.sessions.create({
-      success_url: billingUrl,
-      cancel_url: billingUrl,
-      payment_method_types: ["card"],
-      mode: "subscription",
-      billing_address_collection: "auto",
-      customer_email: email,
-      line_items: [
-        {
-          price: input.stripePriceId,
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        userId: user.id,
-      },
-    })
+//     const stripeSession = await stripe.checkout.sessions.create({
+//       success_url: billingUrl,
+//       cancel_url: billingUrl,
+//       payment_method_types: ["card"],
+//       mode: "subscription",
+//       billing_address_collection: "auto",
+//       customer_email: email,
+//       line_items: [
+//         {
+//           price: input.stripePriceId,
+//           quantity: 1,
+//         },
+//       ],
+//       metadata: {
+//         userId: user.id,
+//       },
+//     })
 
     return {
       data: {
-        url: stripeSession.url ?? billingUrl,
+        url: billingUrl,
       },
       error: null,
     }

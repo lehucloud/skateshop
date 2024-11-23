@@ -50,7 +50,7 @@ export function ConnectStoreToStripeButton({
           aria-hidden="true"
         />
       )}
-      Connect to Stripe
+      Connect to Wallets
     </Button>
   )
 }

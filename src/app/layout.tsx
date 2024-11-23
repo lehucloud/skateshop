@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { env } from "@/env.js"
 import { ClerkProvider } from "@clerk/nextjs"
+import { SessionProvider, SessionProviderProps } from "next-auth/react"
 
 import "@/styles/globals.css"
 
@@ -72,7 +73,7 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <ClerkProvider>
+    <SessionProvider>
       <html lang="en" suppressHydrationWarning>
         <head />
         <body
@@ -96,6 +97,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <Toaster />
         </body>
       </html>
-    </ClerkProvider>
+    </SessionProvider>
   )
 }

@@ -39,6 +39,7 @@ export function ProductCard({
   className,
   ...props
 }: ProductCardProps) {
+  
   const [isUpdatePending, startUpdateTransition] = React.useTransition()
 
   return (
