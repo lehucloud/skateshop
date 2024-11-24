@@ -1,0 +1,1 @@
+ALTER TABLE "stocks" ADD COLUMN "variant_code" text NOT NULL;

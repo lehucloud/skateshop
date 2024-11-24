@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge"
 import { AddToCartForm } from "./_components/add-to-cart-form"
 import { UpdateProductRatingButton } from "./_components/update-product-rating-button"
 import { Button } from "@/components/ui/button"
+import { VariantSelector } from "./_components/variant-selector"
 
 interface ProductPageProps {
   params: {
@@ -78,6 +79,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           tag: true,
         }
       },
+      skus: true,
       variants: {
         columns: {
           id: true,
@@ -87,27 +89,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
             columns: {
               id: true,
               name: true,
-            }
+            },
           },
-          productVariantValues: {
-            columns: {
-              value: true,
-              price: true,
-            }
-          }
+          productVariantOptions: true
         }
       }
     },
     where: eq(products.id, productId),
   });
 
+
+  
+
   if (!product) {
     notFound()
   }
 
-  
-
-  
 
   const store = await db.query.stores.findFirst({
     columns: {
@@ -186,21 +183,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
               rating={product.rating}
             />
           </div>
-          <div className="flex  flex-col ">
-          {product.variants.map((item) => (
-            <div key={item.id} className="flex flex-col space-y-2">
-              <span className="font-semibold mt-2">{item.variant.name}</span>
-              <div className="flex flex-wrap ">
-              {item.productVariantValues.map((sbitem) => (
-                <Button key={sbitem.value} variant="outline">
-                {sbitem.value}
-                </Button>
-              ))}
-              </div>
-            </div>
-          ))}
-          </div>
-          <AddToCartForm productId={productId} showBuyNow={true} />
+          
+          {/* <VariantSelector productId={product.id} variants={} initialVariant={} /> */}
+
           <Separator className="mt-5" />
           <Accordion
             type="single"

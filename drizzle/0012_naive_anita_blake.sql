@@ -1,0 +1,1 @@
+ALTER TABLE "stocks" ADD COLUMN "sku_code" varchar(30) NOT NULL;

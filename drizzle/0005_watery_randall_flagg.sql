@@ -1,0 +1,1 @@
+ALTER TABLE "product_variant_values" ADD COLUMN "sku_code" text NOT NULL;

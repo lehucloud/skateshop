@@ -37,6 +37,7 @@ export const variants = pgTable(
   })
 )
 
+
 export const variantsRelations = relations(variants, ({ one }) => ({
   store: one(stores, { fields: [variants.storeId], references: [stores.id] }),
 }))
@@ -53,9 +54,9 @@ export const productVariants = pgTable(
     productId: varchar("product_id", { length: 30 })
       .references(() => products.id, { onDelete: "cascade" })
       .notNull(),
-    productVariantId: varchar("product_variant_id", { length: 30 })
-      .references(() => variants.id, { onDelete: "cascade" })
-      .notNull(),
+    // productVariantId: varchar("product_variant_id", { length: 30 })
+      // .references(() => variants.id, { onDelete: "cascade" })
+      // .notNull(),
     variantId: varchar("variant_id", { length: 30 })
       .references(() => variants.id, { onDelete: "cascade" })
       .notNull(),
@@ -79,6 +80,7 @@ export const productVariantsRelations = relations(
       references: [variants.id],
     }),
     productVariantValues: many(productVariantValues),
+    productVariantOptions: many(productVariantOptions),
   })
 )
 
@@ -91,22 +93,47 @@ export const productVariantValues = pgTable(
     productVariantId: varchar("product_variant_id", { length: 30 })
       .references(() => productVariants.id, { onDelete: "cascade" })
       .notNull(),
+    // variantCode: text("variant_code").notNull(),
     value: text("value").notNull(),
-    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+    // price: decimal("price", { precision: 10, scale: 2 }).notNull(),
     stockId: varchar("stock_id", { length: 30 })
       .references(() => stocks.id, { onDelete: "cascade" })
       .notNull(),
     ...lifecycleDates,
   },
   (table) => ({
-    pk: primaryKey({
-      name: "product_variant_values_pk",
-      columns: [table.productVariantId, table.value],
-    }),
+    // pk: primaryKey({
+    //   name: "product_variant_values_pk",
+    //   columns: [table.productVariantId, table.value],
+    // }),
     productVariantIdIdx: index("variant_values_product_variant_id_idx").on(
       table.productVariantId
     ),
-    stockIdIdx: index("variant_values_stock_id_idx").on(table.stockId),
+    // stockIdIdx: index("variant_values_stock_id_idx").on(table.stockId),
+  })
+)
+
+export const productVariantOptions = pgTable(
+  "product_variant_options",
+  {
+    productVariantId: varchar("product_variant_id", { length: 30 })
+      .references(() => productVariants.id, { onDelete: "cascade" })
+      .notNull(),
+    value: text("value").notNull(),
+    ...lifecycleDates,
+  },
+  (table) => ({
+
+  })
+)
+
+export const productVariantOptionRelations = relations(
+  productVariantOptions,
+  ({ one }) => ({
+    productVariant: one(productVariants, {
+      fields: [productVariantOptions.productVariantId],
+      references: [productVariants.id],
+    }),
   })
 )
 

@@ -80,7 +80,7 @@ export async function getStoresByUserId(input: { userId: string }) {
           stripeAccountId: stores.stripeAccountId,
           productCount: count(products.id),
           orderCount: count(orders.id),
-          customerCount: countDistinct(orders.email),
+          customerCount: countDistinct(orders.id),
         })
         .from(stores)
         .leftJoin(products, eq(products.storeId, stores.id))

@@ -1,0 +1,1 @@
+ALTER TABLE "product_variants" DROP COLUMN IF EXISTS "product_variant_id";
