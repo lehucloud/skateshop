@@ -3,7 +3,7 @@
 import { unstable_noStore as noStore, revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { db } from "@/db"
-import { carts, categories, products, stores, subcategories } from "@/db/schema"
+import { carts, categories, products, stocks,stores, subcategories } from "@/db/schema"
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm"
 import { type z } from "zod"
 
@@ -32,11 +32,11 @@ export async function getCart(input?: {
       where: eq(carts.id, cartId),
     })
 
-    const productIds = cart?.items?.map((item) => item.productId) ?? []
+    const skuItems = cart?.items?.map((item) => item.skuCode) ?? []
 
-    if (productIds.length === 0) return []
+    if (skuItems.length === 0) return []
 
-    const uniqueProductIds = [...new Set(productIds)]
+    const skuItemInput = [...new Set(skuItems)]
 
     const cartLineItems = await db
       .select({
@@ -53,11 +53,12 @@ export async function getCart(input?: {
       })
       .from(products)
       .leftJoin(stores, eq(stores.id, products.storeId))
+      .leftJoin(stocks, and(eq(stocks.productId, products.id)))
       .leftJoin(categories, eq(categories.id, products.categoryId))
       .leftJoin(subcategories, eq(subcategories.id, products.subcategoryId))
       .where(
         and(
-          inArray(products.id, uniqueProductIds),
+          inArray(stocks.skuCode, skuItemInput as string[]),
           input?.storeId ? eq(products.storeId, input.storeId) : undefined
         )
       )
@@ -153,6 +154,27 @@ export async function addToCart(rawInput: z.infer<typeof cartItemSchema>) {
     if (!product) {
       throw new Error("Product not found, please try again.")
     }
+
+    if(input.skuCode){
+      const stock = await db.query.stocks.findFirst({
+        columns: {
+          price: true,
+          quantity: true,
+        },
+        where: and (
+          eq(stocks.productId, input.productId),
+          eq(stocks.skuCode, input.skuCode as string),
+        ),
+      })
+
+      if (!stock) {
+        throw new Error("SKU not found, please try again.")
+      }
+
+      product.inventory = stock.quantity
+  
+    }
+
 
     if (product.inventory < input.quantity) {
       throw new Error("Product is out of stock, please try again later.")

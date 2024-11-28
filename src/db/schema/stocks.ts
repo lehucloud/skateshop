@@ -46,10 +46,10 @@ export const stocksRelations = relations(stocks, ({ one }) => ({
   //   fields: [stocks.productVariantId],
   //   references: [productVariants.id],
   // }),
-  // productVariantValues: one(productVariantValues, {
-  //   fields: [stocks.productVariantId],
-  //   references: [productVariantValues.productVariantId],
-  // }),
+  productVariantValues: one(productVariantValues, {
+    fields: [stocks.id],
+    references: [productVariantValues.stockId],
+  }),
 }))
 
 export type Stock = typeof stocks.$inferSelect

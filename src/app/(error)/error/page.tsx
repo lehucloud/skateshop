@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, ChevronLeft, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -34,6 +34,10 @@ const getErrorMessage = (error: string | null) => {
             return 'Sign in failed. Check the details you provided are correct.';
         case 'SessionRequired':
             return 'Please sign in to access this page.';
+        case 'EmailNotVerified':
+            return 'Please sign in to access this page.';
+        case 'UserNotFound':
+            return 'Please sign in to access this page.';
         default:
             return 'An unexpected error occurred. Please try again later.';
     }
@@ -43,6 +47,17 @@ const AuthErrorPage = () => {
     const searchParams = useSearchParams();
     const error = searchParams.get('error');
     const errorMessage = getErrorMessage(error);
+
+    const router = useRouter()
+
+    if (error === "EmailNotVerified") {
+        router.push("/signin/verify-email");
+    }
+
+    if (error === "UserNotFound") {
+        router.push("/new-user");
+    }
+
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

@@ -1,12 +1,20 @@
-import { orders, Payment, products, stocks, type PayConfSchema } from "@/db/schema"
+import { orders, Payment, products,payments, stocks, type PayConfSchema } from "@/db/schema"
 import { string } from "zod"
 
 import Alipay, { AlipayConfig } from "../alipay"
-import IPayment from "../types"
+import IPayment, { PayemntChannel } from "../types"
 import WeChatPay, { WeChatPayConfig } from "../wxpay"
 import { getOrderByStoreOrderNo, updateOrderByPayStatus } from "./order"
 import { db } from "@/db"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
+
+
+export async function getPaymentByStoreId({storeId,channel}:{storeId:string,channel:PayemntChannel}){
+    return db.query.payments.findFirst({
+        where: and(eq(payments.storeId, storeId),eq(payments.channel, channel),)
+    });
+}
+
 
 export default function PaymentFactory(payChannel: Payment): IPayment {
 
@@ -104,7 +112,7 @@ export async function paySuccess(input:{storeOrderNo:string,thirdPartyOrderNo:st
         // 更新库存
         order.items?.forEach(async (item) => {
 
-            if(item.variants){
+            // if(item.variants){
 
                 //如果是一次买断的商品，则不需要分配账号逻辑
 
@@ -125,24 +133,25 @@ export async function paySuccess(input:{storeOrderNo:string,thirdPartyOrderNo:st
                 // .where(eq(stocks.productVariantId, item.variant.variantId))
 
                 //分配账号
-            }
-            if(item.options){
-                // 更新库存
-                item.options?.forEach(async (option) => {
-                    // await db
-                    // .update(stocks)
-                    // .set({
-                    //     quantity: Number(stocks.quantity) - item.quantity,
-                    // })
-                    // .where(eq(stocks.productVariantId, option.variantId))
+            // }
+            // if(item.options){
+            //     // 更新库存
+            //     item.options?.forEach(async (option) => {
+            //         // await db
+            //         // .update(stocks)
+            //         // .set({
+            //         //     quantity: Number(stocks.quantity) - item.quantity,
+            //         // })
+            //         // .where(eq(stocks.productVariantId, option.variantId))
 
-                    // 更新商品销量
+            //         // 更新商品销量
 
-                    //分配账号
-                })
-            }
+            //         //分配账号
+            //     })
+            // }
         })
     })
+
     return "success"
 }
 
@@ -175,5 +184,6 @@ export async function payFail(input:{storeOrderNo:string,reason:string,thirdPart
             console.error(err)
         }     
     })
+    
     return "success"
 }

@@ -1,24 +1,30 @@
+import { Payment } from '@/db/schema';
+import PaymentFactory, { getPaymentByStoreId, payFail, paySuccess } from '@/lib/actions/payments';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method === 'POST') {
-        const { out_trade_no, trade_status } = req.body;
 
-        // Verify the callback signature here (implementation depends on your setup)
-        // const isValidSignature = verifySignature(req.body);
+    const {storeId} = req.query
+    
+
+    const paymentChannel = await getPaymentByStoreId({storeId:storeId as string,channel:"alipay"})
+
+    const payment = PaymentFactory(paymentChannel as Payment);
+
+    if (req.method === 'POST') {
+
+        // const isValidSignature = payment.verifySignature(req.body);
         // if (!isValidSignature) {
-        //   return res.status(400).json({ message: 'Invalid signature' });
+        //     return res.status(400).json({ message: 'Invalid signature' });
         // }
 
-        // Process the callback based on trade_status
+        const { out_trade_no, trade_status } = req.body;
+
         if (trade_status === 'TRADE_SUCCESS') {
-            // Handle successful payment
-            // Update your order status in the database
-            // const orderId = out_trade_no;
-            // await updateOrderStatus(orderId, 'paid');
+            paySuccess({storeOrderNo: out_trade_no, thirdPartyOrderNo: out_trade_no})
             res.status(200).json({ message: 'Payment successful' });
         } else {
-            // Handle other statuses if needed
+            payFail({storeOrderNo: out_trade_no,reason:trade_status, thirdPartyOrderNo: out_trade_no})
             res.status(200).json({ message: 'Payment not successful' });
         }
     } else {

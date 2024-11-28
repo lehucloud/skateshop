@@ -1,5 +1,3 @@
-import { variants } from "@/db/schema"
-import { options } from "prettier-plugin-tailwindcss"
 import * as z from "zod"
 
 export const cartItemSchema = z.object({
@@ -7,10 +5,7 @@ export const cartItemSchema = z.object({
   quantity: z.number().min(0),
   subcategoryId: z.string().optional(),
   options: z.array(z.string()).optional(),
-  variants: z.array(z.object({
-    variantId: z.string(),
-    variantValue: z.string(),
-  })).optional(),
+  skuCode: z.string().optional(),
 })
 
 export const checkoutItemSchema = cartItemSchema.extend({
@@ -31,6 +26,7 @@ export const cartLineItemSchema = z.object({
     .optional()
     .nullable(),
   options: z.array(z.string()).optional(),
+  skuCode: z.string().optional(),
   category: z.string().optional().nullable(),
   subcategory: z.string().optional().nullable(),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/),

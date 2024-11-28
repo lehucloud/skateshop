@@ -24,14 +24,27 @@ import {
 import { Input } from "@/components/ui/input"
 import { Icons } from "@/components/icons"
 
+
+
+interface Sku {
+  id: string,
+  quantity: number,
+  price: string,
+  originalPrice: string | null,
+  variantCode: string,
+  skuCode: string,
+}
+
 interface AddToCartFormProps {
   productId: string
+  sku: Sku | null
   showBuyNow?: boolean
 }
 
 type Inputs = z.infer<typeof updateCartItemSchema>
 
-export function AddToCartForm({ productId, showBuyNow }: AddToCartFormProps) {
+
+export function AddToCartForm({ productId,sku, showBuyNow }: AddToCartFormProps) {
   const id = React.useId()
   const router = useRouter()
   const [isAddingToCart, setIsAddingToCart] = React.useState(false)
@@ -49,6 +62,7 @@ export function AddToCartForm({ productId, showBuyNow }: AddToCartFormProps) {
     setIsAddingToCart(true)
     const { error } = await addToCart({
       productId,
+      skuCode: sku?.skuCode,
       quantity: data.quantity,
     })
 
@@ -141,6 +155,7 @@ export function AddToCartForm({ productId, showBuyNow }: AddToCartFormProps) {
 
                 const { error } = await addToCart({
                   productId,
+                  skuCode: sku?.skuCode,
                   quantity: form.getValues("quantity"),
                 })
 

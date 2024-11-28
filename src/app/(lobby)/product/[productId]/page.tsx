@@ -25,7 +25,7 @@ import { AddToCartForm } from "./_components/add-to-cart-form"
 import { UpdateProductRatingButton } from "./_components/update-product-rating-button"
 import { Button } from "@/components/ui/button"
 import { VariantSelector } from "./_components/variant-selector"
-
+import { Icons } from "@/components/icons"
 interface ProductPageProps {
   params: {
     productId: string
@@ -69,6 +69,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       inventory: true,
       rating: true,
       storeId: true,
+      salesVolume: true,
     },
     with: {
       tags: {
@@ -79,7 +80,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
           tag: true,
         }
       },
-      skus: true,
+      skus: {
+        columns: {
+          id: true,
+          quantity: true,
+          price: true,
+          originalPrice: true,
+          variantCode: true,
+          skuCode: true,
+        },
+      },
       variants: {
         columns: {
           id: true,
@@ -98,8 +108,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
     where: eq(products.id, productId),
   });
 
-
   
+
 
   if (!product) {
     notFound()
@@ -138,7 +148,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     : []
 
   return (
-    <Shell className="pb-12 md:pb-14">
+    <Shell className="max-w-6xl pb-12 md:pb-14">
       <div className="flex flex-col gap-8 md:flex-row md:gap-16">
         <ProductImageCarousel
           className="w-full md:w-1/2"
@@ -151,31 +161,36 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="flex w-full flex-col gap-4 md:w-1/2">
           <div className="space-y-2">
             <h2 className="line-clamp-1 text-2xl font-bold">{product.name}</h2>
-            <p className="text-base text-muted-foreground">
+            {/* {product.skus.length >= 1 ? (
+              null
+            ):(
+              <p className="text-base text-muted-foreground">
               {formatPrice(product.price)}
-            </p>
+            </p>  
+            )} */}
             {store ? (
               <Link
                 href={`/products?store_ids=${store.id}`}
                 className="line-clamp-1 inline-block text-base text-muted-foreground hover:underline"
               >
+                <Icons.store className="inline-block w-4 h-4 mr-1" />
                 {store.name}
               </Link>
             ) : null}
           </div>
           <Separator className="my-1.5" />
           <p className="text-base text-muted-foreground">
-            {product.inventory} in stock
+              销量: {product.salesVolume}  
           </p>
-          <div className="flex items-center space-x-2">
-            {product.tags.map((item) => (
-              <>
-                    <Badge key={item.tag.name} variant="outline" className="capitalize">
-                      {item.tag.name}
-                    </Badge>
-              </>
-            ))}
-          </div>
+          {product.tags && (
+            <div className="flex items-center space-x-2">
+              {product.tags.map((item) => (
+                <Badge key={item.tag.name} variant="outline" className="capitalize">
+                  {item.tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <Rating rating={Math.round(product.rating / 5)} />
             <UpdateProductRatingButton
@@ -183,8 +198,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
               rating={product.rating}
             />
           </div>
-          
-          {/* <VariantSelector productId={product.id} variants={} initialVariant={} /> */}
+
+          {product.skus && product.skus[0] ? (
+            <VariantSelector productId={product.id} skus={product.skus} variants={product.variants} initialSku={product.skus[0]} />
+          ):(
+            <>
+              <div>
+                <p>Price: $ {formatPrice(product.price)}</p>
+                <p>Stock: {product.inventory} available</p>
+              </div>
+              <AddToCartForm productId={product.id} sku={null}  showBuyNow={true} />
+            </>
+          )}
+        
 
           <Separator className="mt-5" />
           <Accordion
@@ -210,12 +236,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             More products from {store.name}
           </h2>
           <ScrollArea orientation="horizontal" className="pb-3.5">
-            <div className="flex gap-4">
+            <div className="flex gap-4 py-4 ">
               {otherProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
-                  className="min-w-[260px]"
+                  className="min-w-[260px] "
                 />
               ))}
             </div>

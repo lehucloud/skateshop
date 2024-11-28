@@ -21,6 +21,16 @@ class Alipay implements IPayment{
     constructor(config: AlipayConfig) {
         this.config = config;
     }
+    public verifySignature(params:any) {
+        const alipaySdk = new AlipaySdk({
+            appId: this.config.appId,
+            privateKey: this.config.privateKey,
+            alipayPublicKey: this.config.alipayPublicKey,
+            gateway: this.config.gateway,
+        });
+
+        return alipaySdk.checkNotifySign(params);
+    }
     public pay(order: PayOrder, client: string): Promise<PayResponse<any>> {
         switch (client) {
             case "ma":

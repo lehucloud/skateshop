@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { env } from "@/env.js"
-import { ClerkProvider } from "@clerk/nextjs"
+// import { ClerkProvider } from "@clerk/nextjs"
 import { SessionProvider, SessionProviderProps } from "next-auth/react"
 
 import "@/styles/globals.css"

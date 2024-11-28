@@ -4,91 +4,117 @@
 import { useState } from "react";
 import { AddToCartForm } from "./add-to-cart-form";
 
+
+interface Sku {
+    id: string,
+    quantity: number,
+    price: string,
+    originalPrice: string | null,
+    variantCode: string,
+    skuCode: string,
+}
+
 interface Variant {
-    id: string;
-    name: string;
-    attributes: {
-        size?: string;
-        color?: string;
-    };
-    price: number;
-    stock: number;
+    id:string
+    variant: {
+        id: string;
+        name: string;
+    }
+    productVariantOptions: {
+        productVariantId?: string;
+        value?: string;
+        selected?: boolean;
+    }[];
+}
+
+function getSelectedValues(variants: Variant[]): string[] {
+    return variants.flatMap(variant => 
+        variant.productVariantOptions
+            .filter(option => option.selected)
+            .map(option => option.value)
+    ).filter((value): value is string => value !== undefined);
 }
 
 export function VariantSelector({
+    skus,
+    initialSku,
     variants,
-    initialVariant,
     productId
 }: {
+    skus: Sku[];
+    initialSku: Sku;
     variants: Variant[];
-    initialVariant: Variant;
     productId: string;
 }) {
-    const [selectedVariant, setSelectedVariant] = useState(initialVariant);
-    const [selectedAttributes, setSelectedAttributes] = useState(initialVariant.attributes);
+    const [selectedSku, setSelectedSku] = useState(initialSku);
+    const [selectedVariants, setSelectedVariants] = useState(initialSku?.variantCode.split(":") || []);
 
-    // 处理属性选择
-    const handleAttributeChange = (attribute: string, value: string) => {
-        const newAttributes = { ...selectedAttributes, [attribute]: value };
-        setSelectedAttributes(newAttributes);
+    variants.find(item => {
+        item.productVariantOptions.some(option => {
+            selectedVariants?.some(value => {
+                if (option.value === value) {
+                    option.selected = true;
+                }
+            })
+        })
+    });
 
-        // 找到匹配的变体
-        // const matchingVariant = variants.find(variant =>
-        //     Object.entries(newAttributes).every(([key, value]) =>
-        //         variant.attributes[key] === value
-        //     )
-        // );
+    // 处理变体选择
+    const handleVariantChange = (id: string, value: string) => {
 
-        // if (matchingVariant) {
-        //     setSelectedVariant(matchingVariant);
-        // }
+        variants.find(item => {
+            if (item.id === id) {
+                item.productVariantOptions.forEach(option => {
+                    option.selected = false;
+                });
+            }
+            item.productVariantOptions.some(option => {
+                if (option.productVariantId === id && option.value === value) {
+                    option.selected = true;
+                }
+            })
+        });
+
+        const selectedVariants = getSelectedValues(variants);
+
+        const selectedVariantCode = selectedVariants.join(':');
+        setSelectedVariants(selectedVariants);
+
+        const sku = skus.find(sku => {
+            if(sku.variantCode === selectedVariantCode){
+                return sku;
+            }
+        });
+
+        if (sku) {
+            setSelectedSku(sku);
+        }
     };
 
     return (
         <div className="space-y-4">
-            {/* 尺寸选择 */}
-            {variants.some(v => v.attributes.size) && (
-                <div>
-                    <h3>Size</h3>
+            {variants.map((item, index) => (
+                <div key={index}>
+                    <h3>{item.variant.name}</h3>
                     <div className="flex gap-2">
-                        {Array.from(new Set(variants.map(v => v.attributes.size))).map(size => (
+                        {item.productVariantOptions.map(option => (
                             <button
-                                key={size}
-                                className={`px-4 py-2 border rounded ${selectedAttributes.size === size ? 'border-black' : 'border-gray-200'
-                                    }`}
-                                // onClick={() => handleAttributeChange('size', size)}
+                                key={option.value}
+                                className={`px-4 py-2 border rounded ${option.selected? 'border-yellow-500' : 'border-gray-200'}`}
+                                onClick={() => handleVariantChange(item.id, option.value || '')}
                             >
-                                {size}
+                                {option.value}
                             </button>
                         ))}
                     </div>
                 </div>
-            )}
-
-            {/* 颜色选择 */}
-            {variants.some(v => v.attributes.color) && (
-                <div>
-                    <h3>Color</h3>
-                    <div className="flex gap-2">
-                        {Array.from(new Set(variants.map(v => v.attributes.color))).map(color => (
-                            <button
-                                key={color}
-                                className={`w-8 h-8 rounded-full ${selectedAttributes.color === color ? 'ring-2 ring-black' : ''
-                                    }`}
-                                style={{ backgroundColor: color }}
-                                // onClick={() => handleAttributeChange('color', color)}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* 价格和库存显示 */}
+            ))}
             <div>
-                <p>Price: ${selectedVariant.price}</p>
-                <p>Stock: {selectedVariant.stock} available</p>
+                <p>Sku: {selectedSku.skuCode}</p>
+                <p>Price: ${selectedSku.price}</p>
+                <p>Stock: {selectedSku.quantity} available</p>
             </div>
-            <AddToCartForm productId={productId} showBuyNow={true} />
+            <AddToCartForm productId={productId} sku={selectedSku} showBuyNow={true} />
         </div>
     );
 }

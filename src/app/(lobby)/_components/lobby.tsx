@@ -20,6 +20,8 @@ import { Shell } from "@/components/shell"
 import { StoreCard } from "@/components/store-card"
 
 import { CategoryCard } from "./category-card"
+import { ProductContentSection } from "@/components/products-content-section"
+import HeroHome from "./hero-home"
 
 interface LobbyProps {
   githubStarsPromise: ReturnType<typeof getGithubStars>
@@ -46,78 +48,65 @@ export async function Lobby({
     <Shell className="max-w-6xl gap-0">
       <PageHeader
         as="section"
-        className="mx-auto items-center gap-2 text-center"
+        className="mt-12 text-center lg:mt-1 gap-2 "
         withPadding
       >
-        <Link
-          href={siteConfig.links.github}
-          target="_blank"
-          rel="noreferrer"
-          className="animate-fade-up"
-          style={{ animationDelay: "0.10s", animationFillMode: "both" }}
-        >
-          <Badge
-            aria-hidden="true"
-            variant="secondary"
-            className="rounded-full px-3.5 py-1.5"
+        <div className="flex flex-col items-center justify-center lg:items-end lg:justify-end lg:flex-row-reverse lg:flex-row">
+
+          <HeroHome className="flex border-0 lg:w-2/5 2xl:w-1/3 "/>
+
+          <div className="flex flex-col lg:w-3/5   2xl:w-2/3 mt-4">
+          <PageHeaderHeading
+            className="animate-fade-up lg:text-left"
+            style={{ animationDelay: "0.20s", animationFillMode: "both",  }}
           >
-            <Icons.gitHub className="mr-2 size-3.5" aria-hidden="true" />
-            {githubStars} stars on GitHub
-          </Badge>
-        </Link>
-        <PageHeaderHeading
-          className="animate-fade-up"
-          style={{ animationDelay: "0.20s", animationFillMode: "both" }}
-        >
-          Foundation for your commerce platform
-        </PageHeaderHeading>
-        <PageHeaderDescription
-          className="max-w-[46.875rem] animate-fade-up"
-          style={{ animationDelay: "0.30s", animationFillMode: "both" }}
-        >
-          Skateshop is an open-source platform for building and customizing your
-          own commerce platform with ease.
-        </PageHeaderDescription>
-        <PageActions
-          className="animate-fade-up"
-          style={{ animationDelay: "0.40s", animationFillMode: "both" }}
-        >
-          <Link href="/products" className={cn(buttonVariants())}>
-            Buy now
-          </Link>
-          <Link
-            href="/dashboard/stores"
-            className={cn(buttonVariants({ variant: "outline" }))}
+            <span className="lg:text-6xl lg:leading-[1.8] my-4 bg-clip-text text-transparent bg-gradient-to-r 
+            from-[var(--c-yellow-2)] to-[var(--c-green-1)] md:to-[var(--c-yellow-2)] md:from-[var(--c-green-1)]">
+            UnionShop
+            </span>
+            <p className="lg:text-5xl xl:text-6xl ">共享VIP一站式解决方案</p>
+          </PageHeaderHeading>
+          <PageHeaderDescription
+            className="max-w-[46.875rem] animate-fade-up lg:text-left mt-2"
+            style={{ animationDelay: "0.30s", animationFillMode: "both" }}
           >
-            Sell now
-          </Link>
-        </PageActions>
+            <i className="lg:text-2xl ">引领您进入五彩斑斓的视听世界，并涵盖了 Netflix 、Disney+ 、Spotify会员 和 YouTube会员 的精彩领域</i>
+          </PageHeaderDescription>
+          <PageActions
+            className="animate-fade-up  lg:items-start lg:justify-start "
+            style={{ animationDelay: "0.40s", animationFillMode: "both" }}
+          >
+            <Link href="/products" className={cn(buttonVariants()," hover:scale-105 transition-transform duration-200 ease-in-out")}>
+              立即购买
+            </Link>
+            <Link
+              href="/dashboard/stores"
+              className={cn(buttonVariants({ variant: "outline" }),"hover:scale-105 transition-transform duration-200 ease-in-out")}
+            >
+              我要开店
+            </Link>
+          </PageActions>
+          </div>
+        </div>
       </PageHeader>
-      <section
-        className="grid animate-fade-up grid-cols-1 gap-4 xs:grid-cols-2 md:grid-cols-4"
-        style={{ animationDelay: "0.50s", animationFillMode: "both" }}
-      >
-        {categories.map((category) => (
-          <CategoryCard key={category.name} category={category} />
-        ))}
-      </section>
-      <ContentSection
+      
+      <ProductContentSection
         title="Featured products"
         description="Explore products from around the world"
         href="/products"
         linkText="View all products"
-        className="pt-14 md:pt-20 lg:pt-24"
+        className="lg:pt-8"
       >
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard className=" " key={product.id} product={product} />
         ))}
-      </ContentSection>
+      </ProductContentSection>
       <ContentSection
         title="Featured stores"
         description="Explore stores from around the world"
         href="/stores"
         linkText="View all stores"
-        className="py-14 md:py-20 lg:py-24"
+        className="py-14 lg:py-20 lg:py-24"
       >
         {stores.map((store) => (
           <StoreCard
@@ -127,6 +116,15 @@ export async function Lobby({
           />
         ))}
       </ContentSection>
+
+      <section
+        className="grid animate-fade-up grid-cols-1 gap-4 xs:grid-cols-2 lg:grid-cols-4"
+        style={{ animationDelay: "0.50s", animationFillMode: "both" }}
+      >
+        {categories.map((category) => (
+          <CategoryCard key={category.name} category={category} />
+        ))}
+      </section>
     </Shell>
   )
 }

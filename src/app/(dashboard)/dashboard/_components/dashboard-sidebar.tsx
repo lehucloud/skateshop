@@ -62,9 +62,9 @@ export function DashboardSidebar({
       <div className="hidden h-[3.55rem] items-center border-b border-border/60 px-4 lg:flex lg:px-6">
         <Link
           href="/"
-          className="flex w-fit items-center font-heading tracking-wider text-foreground/90 transition-colors hover:text-foreground"
+          className="flex w-fit z-990 items-center font-heading tracking-wider text-foreground/90 transition-colors hover:text-foreground"
         >
-          <Icons.logo className="mb-1 mr-2 size-7" aria-hidden="true" />
+          <Icons.logo className="mb-1 mr-2 size-7 " aria-hidden="true" />
           {siteConfig.name}
         </Link>
       </div>

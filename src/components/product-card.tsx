@@ -44,11 +44,14 @@ export function ProductCard({
 
   return (
     <Card
-      className={cn("size-full overflow-hidden rounded-lg", className)}
+      className={cn("size-full overflow-hidden rounded-lg hover:scale-105 transition-transform duration-200 ease-in-out ", className)}
       {...props}
     >
-      <Link aria-label={product.name} href={`/product/${product.id}`}>
-        <CardHeader className="border-b p-0">
+      <div className="flex md:flex-col h-30 flex-row">
+
+      <Link aria-label={product.name} href={`/product/${product.id}`} >
+      
+        <CardHeader className="border-b p-0  w-44 h-full md:w-full">
           <AspectRatio ratio={4 / 3}>
             {product.images?.length ? (
               <Image
@@ -68,15 +71,16 @@ export function ProductCard({
         </CardHeader>
         <span className="sr-only">{product.name}</span>
       </Link>
+      <div className="flex flex-col w-full ">
       <Link href={`/product/${product.id}`} tabIndex={-1}>
-        <CardContent className="space-y-1.5 p-4">
+        <CardContent className="md:space-y-1.5 p-4">
           <CardTitle className="line-clamp-1">{product.name}</CardTitle>
           <CardDescription className="line-clamp-1">
             {formatPrice(product.price)}
           </CardDescription>
         </CardContent>
       </Link>
-      <CardFooter className="p-4 pt-1">
+      <CardFooter className="p-4 md:pt-1 pb-2 ">
         {variant === "default" ? (
           <div className="flex w-full items-center space-x-2">
             <Button
@@ -102,7 +106,7 @@ export function ProductCard({
                   aria-hidden="true"
                 />
               )}
-              Add to cart
+              加入购物车
             </Button>
             <Link
               href={`/preview/product/${product.id}`}
@@ -144,6 +148,8 @@ export function ProductCard({
           </Button>
         )}
       </CardFooter>
+      </div>
+      </div>
     </Card>
   )
 }

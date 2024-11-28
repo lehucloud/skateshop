@@ -147,10 +147,11 @@ export default {
           "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
       },
       fontSize: {
-        "tremor-label": ["0.75rem", { lineHeight: "1rem" }],
-        "tremor-default": ["0.875rem", { lineHeight: "1.25rem" }],
-        "tremor-title": ["1.125rem", { lineHeight: "1.75rem" }],
-        "tremor-metric": ["1.875rem", { lineHeight: "2.25rem" }],
+        sm: '0.875rem', // 14px
+        "tremor-label": ["0.875rem", { lineHeight: "1.25rem" }], // 14px
+        "tremor-default": ["1rem", { lineHeight: "1.5rem" }], // 16px
+        "tremor-title": ["1.25rem", { lineHeight: "1.75rem" }], // 20px
+        "tremor-metric": ["2rem", { lineHeight: "2.5rem" }], // 32px
       },
       /* */
       fontFamily: {

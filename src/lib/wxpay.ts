@@ -17,6 +17,9 @@ class WeChatPay implements IPayment {
     constructor(config: WeChatPayConfig) {
         this.config = config;
     }
+    public verifySignature(): Boolean {
+        throw new Error('Method not implemented.');
+    }
     public pay(order: PayOrder, client: string): Promise<PayResponse<any>> {
         throw new Error('Method not implemented.');
     }

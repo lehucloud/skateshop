@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { useSignIn } from "@clerk/nextjs"
+// import { useSignIn } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -32,7 +32,7 @@ type Inputs = z.infer<typeof resetPasswordSchema>
 
 export function ResetPasswordConfirmForm() {
   const router = useRouter()
-  const { isLoaded, signIn, setActive } = useSignIn()
+  // const { isLoaded, signIn, setActive } = useSignIn()
   const [loading, setLoading] = React.useState(false)
 
   // react-hook-form
@@ -46,28 +46,28 @@ export function ResetPasswordConfirmForm() {
   })
 
   async function onSubmit(data: Inputs) {
-    if (!isLoaded) return
+    // if (!isLoaded) return
 
     setLoading(true)
 
     try {
-      const attemptFirstFactor = await signIn.attemptFirstFactor({
-        strategy: "reset_password_email_code",
-        code: data.code,
-        password: data.password,
-      })
+      // const attemptFirstFactor = await signIn.attemptFirstFactor({
+      //   strategy: "reset_password_email_code",
+      //   code: data.code,
+      //   password: data.password,
+      // })
 
-      if (attemptFirstFactor.status === "needs_second_factor") {
-        // TODO: implement 2FA (requires clerk pro plan)
-      } else if (attemptFirstFactor.status === "complete") {
-        await setActive({
-          session: attemptFirstFactor.createdSessionId,
-        })
+      // if (attemptFirstFactor.status === "needs_second_factor") {
+      //   // TODO: implement 2FA (requires clerk pro plan)
+      // } else if (attemptFirstFactor.status === "complete") {
+      //   await setActive({
+      //     session: attemptFirstFactor.createdSessionId,
+      //   })
         router.push(`${window.location.origin}/`)
         toast.success("Password reset successfully.")
-      } else {
-        console.error(attemptFirstFactor)
-      }
+      // } else {
+      //   console.error(attemptFirstFactor)
+      // }
     } catch (err) {
       showErrorToast(err)
     } finally {

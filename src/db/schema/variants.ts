@@ -129,7 +129,7 @@ export const productVariantOptions = pgTable(
 
 export const productVariantOptionRelations = relations(
   productVariantOptions,
-  ({ one }) => ({
+  ({ one,many }) => ({
     productVariant: one(productVariants, {
       fields: [productVariantOptions.productVariantId],
       references: [productVariants.id],

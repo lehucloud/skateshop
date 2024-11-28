@@ -13,6 +13,7 @@ import { Shell } from "@/components/shell"
 import { ContentSection } from "@/components/content-section"
 import { ProductCard } from "@/components/product-card"
 import React from "react"
+import { ProductContentSection } from "@/components/products-content-section"
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
@@ -38,17 +39,18 @@ export default async function ProductsPage({
           Buy products from our stores
         </PageHeaderDescription>
       </PageHeader>
-      <ContentSection
-        title="Featured products"
-        description="Explore products from around the world"
-        href="/products"
-        linkText="View all products"
-        className="pt-14 md:pt-20 lg:pt-24"
-      >
-        {productsTransaction.data.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </ContentSection>
+
+      <ProductContentSection
+          title="Featured products"
+          description="Explore products from around the world"
+          href="/products"
+          linkText="View all products"
+          className="pt-1"
+        >
+          {productsTransaction.data.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </ProductContentSection>
     </Shell>
   )
 }

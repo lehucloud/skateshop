@@ -38,6 +38,7 @@ export type PayOrder = {
 }
 
 export default interface IPayment {
+    public async verifySignature(params:any): Boolean
     public async pay(order: PayOrder,client :string):  Promise<PayResponse>
     public async mapay(order:PayOrder): Promise<PayResponse>
     public async h5pay(order:PayOrder): Promise<PayResponse>

@@ -40,7 +40,7 @@ export function SignInForm() {
 
   async function onSubmit(data: Inputs) {
     // if (!isLoaded) return
-    return signIn("credentials", {email: data.email, password: data.password, redirect: false})
+    return signIn("credentials", {email: data.email, password: data.password, redirectTo: "/"})
   }
 
   return (

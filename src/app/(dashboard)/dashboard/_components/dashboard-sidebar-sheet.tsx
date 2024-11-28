@@ -14,6 +14,7 @@ import {
 import { Icons } from "@/components/icons"
 
 import { useSidebar } from "../../../../components/layouts/sidebar-provider"
+import { siteConfig } from "@/config/site"
 
 export interface DashboardSidebarSheetProps
   extends React.ComponentPropsWithRef<typeof SheetTrigger>,

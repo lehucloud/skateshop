@@ -29,6 +29,7 @@ export async function CheckoutCard({ storeId }: CheckoutCardProps) {
   
 
   return (
+
     <Card
       key={storeId}
       as="section"

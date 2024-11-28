@@ -1,4 +1,4 @@
-import NextAuth  from "next-auth"
+import NextAuth, { AuthError }  from "next-auth"
 import Google from "next-auth/providers/google"
 import Github from "next-auth/providers/github"
 import Wechat from "@/lib/wechat"
@@ -38,56 +38,51 @@ export const { handlers, auth , signIn} = NextAuth({
             async authorize(credentials, req) {
                 
                 if (!credentials?.email || !credentials?.password) {
-                    throw new Error("请输入邮箱和密码");
+                    throw new AuthError("请输入邮箱和密码");
                 }
 
-                // const user = await db.query.users.findFirst({
-                //     columns: {
-                //         id:true,
-                //         email: true,
-                //         emailVerified: true,
-                //         name:true,
-                //         image:true,
-                //         phone:true,
-                //         phoneVerified:true,
-                //         role:true,
-                //         permissions:true,
-                //         meta:true,
-                //     },
-                //     where: eq(users.email, credentials.email as string)
-                // })
-                // .then(item=>{
-                //     if(!item){
-                //         throw new Error("用户不存在");
-                //     }
-                //     const newUser = {
-                //         ...item,
-                //         permissions: item.permissions??[],
-                //         meta: item.meta??{}
-                //     }
-                //     return newUser;
-                // });
+                const user = await db.query.users.findFirst({
+                    columns: {
+                        id:true,
+                        email: true,
+                        emailVerified: true,
+                        name:true,
+                        image:true,
+                        phone:true,
+                        phoneVerified:true,
+                        role:true,
+                        permissions:true,
+                        meta:true,
+                    },
+                    where: eq(users.email, credentials.email as string)
+                })
+                .then(item=>{
+                    if(!item){
+                        throw new AuthError("UserNotFound");
+                    }
+                    const newUser = {
+                        ...item,
+                        permissions: item.permissions ?? [],
+                        meta: item.meta ?? {},
+                        role: item.role ?? undefined
+                    }
+                    return newUser;
+                });
 
-                // if (!user) {
-                //     throw new Error("用户不存在");
-                // }
-
-                // // const isPasswordValid = await bcrypt.compare(
-                // //     credentials.password,
-                // //     user.password as string
-                // // );
-
-                // // if (!isPasswordValid) {
-                // //     throw new Error("密码错误");
-                // // }
-                // if (!user.emailVerified) {
-                //     throw new Error("邮箱未验证");
-                // }
                 
-                const newUser = {
-                    
-                }
-                return newUser;
+                // const isPasswordValid = await bcrypt.compare(
+                //     credentials.password,
+                //     user.password as string
+                // );
+
+                // if (!isPasswordValid) {
+                //     throw new Error("密码错误");
+                // }
+                // if (!user.emailVerified) {
+                //     throw new AuthError("EmailNotVerified");
+                // }
+                debugger
+                return user;
             }
         })
     ],
