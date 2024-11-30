@@ -50,12 +50,12 @@ const AuthErrorPage = () => {
 
     const router = useRouter()
 
-    if (error === "EmailNotVerified") {
-        router.push("/signin/verify-email");
+    if (error === "AccessDenied") {
+        router.push("/signup/verify-email");
     }
 
-    if (error === "UserNotFound") {
-        router.push("/new-user");
+    if (error === "CredentialsSignin") {
+        router.push("/signup");
     }
 
 

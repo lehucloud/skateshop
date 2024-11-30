@@ -1,4 +1,4 @@
-import NextAuth, { AuthError }  from "next-auth"
+import NextAuth, { CredentialsSignin } from "next-auth"
 import Google from "next-auth/providers/google"
 import Github from "next-auth/providers/github"
 import Wechat from "@/lib/wechat"
@@ -7,8 +7,16 @@ import Credentials from "next-auth/providers/credentials"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import {  accounts, sessions, users, verificationTokens } from "../db/schema/auth"
 import { db } from "../db/index"
-// import CustomUser from "./types.d"
+
 import { eq } from "drizzle-orm"
+
+class EmailNotVerifiedError extends CredentialsSignin {
+    code = "email_not_verified"
+}
+
+class UserNotFoundError extends CredentialsSignin {
+    code = "sginup"
+}
 
 export const { handlers, auth , signIn} = NextAuth({
     debug: true,
@@ -35,10 +43,10 @@ export const { handlers, auth , signIn} = NextAuth({
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" }                
             },
-            async authorize(credentials, req) {
+            async authorize(credentials) {
                 
                 if (!credentials?.email || !credentials?.password) {
-                    throw new AuthError("请输入邮箱和密码");
+                    throw new Error("请输入邮箱和密码");
                 }
 
                 const user = await db.query.users.findFirst({
@@ -58,17 +66,22 @@ export const { handlers, auth , signIn} = NextAuth({
                 })
                 .then(item=>{
                     if(!item){
-                        throw new AuthError("UserNotFound");
+                        return null;
                     }
                     const newUser = {
                         ...item,
-                        permissions: item.permissions ?? [],
-                        meta: item.meta ?? {},
-                        role: item.role ?? undefined
+                        permissions: item?.permissions ?? [],
+                        meta: item?.meta ?? {},
+                        role: item?.role ?? undefined,
+                        emailVerified: item?.emailVerified ?? undefined,
+                        phoneVerified: item?.phoneVerified ?? undefined,
                     }
                     return newUser;
                 });
 
+                if(!user){
+                    throw new UserNotFoundError;
+                }
                 
                 // const isPasswordValid = await bcrypt.compare(
                 //     credentials.password,
@@ -76,37 +89,40 @@ export const { handlers, auth , signIn} = NextAuth({
                 // );
 
                 // if (!isPasswordValid) {
-                //     throw new Error("密码错误");
+                //     throw new CredentialsSignin("PasswordNotMatch", {message:"密码错误"});
                 // }
                 // if (!user.emailVerified) {
-                //     throw new AuthError("EmailNotVerified");
+                //         throw new EmailNotVerifiedError;
                 // }
-                debugger
+
                 return user;
             }
         })
     ],
+    events: {
+        async signIn(message) {
+                // 记录成功登录事件
+                console.log("User signed in:", message.user.email)
+            },
+            async signOut(message) {
+                // 记录登出事件
+                console.log("User signed out:", "")
+            }
+    },
     callbacks: {
         async signIn ({ user, account, profile, email, credentials })  {
-            if (account?.provider === "google") {
-                return profile?.email_verified?true:false;
-            }
-            return true;
+            return true            
         },
         async session({ session, user, token }) {
-            return {
-                ...session,
-                user: {
-                    ...session.user,
-                    id: user.id,
-                    role: user.role,
-                },
-            };
+            session.user.id = token.id ?? "";
+            session.user.role = token.role ?? "";
+            return session;
         },
-        async jwt({ token, user, account, profile }) {
-            
-            token.id = user.id;
-            token.role = user.role;
+        async jwt({ token, user, account, profile ,session}) {
+            if (user) {
+                token.id = user.id;
+                token.role = user.role;
+            }
             return token;
         },
         async redirect({ url, baseUrl }) {
@@ -122,7 +138,7 @@ export const { handlers, auth , signIn} = NextAuth({
     },
 
     session: {
-        strategy: "database",
+        strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60, // 30 days
     },
     secret: process.env.AUTH_SECRET,

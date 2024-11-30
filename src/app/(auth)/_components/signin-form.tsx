@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import type { z } from "zod"
@@ -21,11 +21,24 @@ import { Icons } from "@/components/icons"
 import { PasswordInput } from "@/components/password-input"
 import { signIn } from "next-auth/react"
 import { revalidatePath } from "next/cache"
+import { useSearchParams,useRouter } from "next/navigation"
 
 type Inputs = z.infer<typeof authSchema>
 
 export function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams();
+  const error = searchParams.get('error');
+  const code = searchParams.get('code');
+
+  if (error === "CredentialsSignin" && code==="email_not_verified") {
+    router.push("/signup/verify-email");
+  }
+
+  if (error === "CredentialsSignin" && code==="sginup") {
+      router.push("/signup");
+  }
+  
   // const { isLoaded, signIn, setActive } = useSignIn()
   const [loading, setLoading] = React.useState(false)
 
@@ -40,7 +53,8 @@ export function SignInForm() {
 
   async function onSubmit(data: Inputs) {
     // if (!isLoaded) return
-    return signIn("credentials", {email: data.email, password: data.password, redirectTo: "/"})
+    const result = await signIn("credentials", {email: data.email, password: data.password})
+
   }
 
   return (
