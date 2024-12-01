@@ -40,13 +40,13 @@ import type { CreateOrderSchema, getOrderLineItemsSchema } from "@/lib/validatio
 import { ordersSearchParamsSchema } from "@/lib/validations/params"
 import exp from "constants"
 
-// export async function getOrderLineItems(
-//   input: z.infer<typeof getOrderLineItemsSchema> & {
-//     // paymentIntent?: Stripe.Response<Stripe.PaymentIntent> | null
-//     paymentIntent?: null
-//   }
-// ): Promise<CartLineItemSchema[]> {
-  // try {
+export async function getOrderLineItems(
+  input: z.infer<typeof getOrderLineItemsSchema> & {
+    // paymentIntent?: Stripe.Response<Stripe.PaymentIntent> | null
+    paymentIntent?: null
+  }
+): Promise<CartLineItemSchema[]> {
+  try {
   //   const safeParsedItems = z
   //     .array(checkoutItemSchema)
   //     .safeParse(JSON.parse(input.items ?? "[]"))
@@ -55,41 +55,30 @@ import exp from "constants"
   //     throw new Error("Could not parse items.")
   //   }
 
-  //   const lineItems = await db
-  //     .select({
-  //       id: products.id,
-  //       name: products.name,
-  //       images: products.images,
-  //       price: products.price,
-  //       inventory: products.inventory,
-  //       storeId: products.storeId,
-  //       categoryId: products.categoryId,
-  //       subcategoryId: products.subcategoryId,
-  //     })
-  //     .from(products)
-  //     .leftJoin(subcategories, eq(products.subcategoryId, subcategories.id))
-  //     .leftJoin(categories, eq(products.categoryId, categories.id))
-  //     .where(
-  //       inArray(
-  //         products.id,
-  //         safeParsedItems.data.map((item) => item.productId)
-  //       )
-  //     )
-  //     .groupBy(products.id)
-  //     .orderBy(desc(products.createdAt))
-  //     .execute()
-  //     .then((items) => {
-  //       return items.map((item) => {
-  //         const quantity = safeParsedItems.data.find(
-  //           (checkoutItem) => checkoutItem.productId === item.id
-  //         )?.quantity
-
-  //         return {
-  //           ...item,
-  //           quantity: quantity ?? 0,
-  //         }
-  //       })
-  //     })
+    const lineItems = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        images: products.images,
+        price: products.price,
+        inventory: products.inventory,
+        quantity: products.inventory, // Add a default quantity value
+        storeId: products.storeId,
+        categoryId: products.categoryId,
+        subcategoryId: products.subcategoryId,
+      })
+      .from(products)
+      .leftJoin(subcategories, eq(products.subcategoryId, subcategories.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(
+        inArray(
+          products.id,
+          []
+        )
+      )
+      .groupBy(products.id)
+      .orderBy(desc(products.createdAt))
+      .execute()
 
     // Temporary workaround for payment_intent.succeeded webhook event not firing in production
     // TODO: Remove this once the webhook is working
@@ -195,11 +184,11 @@ import exp from "constants"
     //     .where(eq(carts.paymentIntentId, cart.paymentIntentId))
     // }
 
-    // return lineItems
-  // } catch (err) {
-    // return []
-  // }
-// }
+    return lineItems as CartLineItemSchema[]
+  } catch (err) {
+    return []
+  }
+}
 export async function getOrderByStoreOrderNo(input: { storeOrderNo: string }) {
     return await db.query.orders.findFirst({
       where: eq(orders.storeOrderNo, input.storeOrderNo),
