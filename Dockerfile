@@ -2,6 +2,8 @@
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
+COPY /dev/env.example ./.env
+
 RUN npm install
 COPY . .
 

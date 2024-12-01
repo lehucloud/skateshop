@@ -1,8 +1,8 @@
 import { withContentlayer } from "next-contentlayer"
 
 /**
- * 使用skip_env_validation“运行构建”或“ dev”，以跳过设想验证。这特别有用
-*用于Docker构建。
+ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
+ * for Docker builds.
  */
 await import("./src/env.js")
 

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { FormEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
