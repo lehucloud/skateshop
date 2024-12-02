@@ -1,14 +1,65 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/civil-hope-441115-r2/github.com/lehucloud/skateshop:$COMMIT_SHA', '.']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/civil-hope-441115-r2/github.com/lehucloud/skateshop:$COMMIT_SHA']
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: gcloud
-  args:
-  - run
-  - deploy
-  - knfapp
-  - --image=gcr.io/civil-hope-441115-r2/github.com/lehucloud/skateshop:$COMMIT_SHA
-  - --region=asia-east2
-  - --platform=managed
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '--no-cache'
+      - '-t'
+      - >-
+        $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - .
+      - '-f'
+      - Dockerfile
+    id: Build
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - >-
+        $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+    id: Push
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    args:
+      - run
+      - services
+      - update
+      - $_SERVICE_NAME
+      - '--platform=managed'
+      - >-
+        --image=$_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - >-
+        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
+      - '--region=$_DEPLOY_REGION'
+      - '--quiet'
+    id: Deploy
+    entrypoint: gcloud
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - '--rm'
+      - '--name'
+      - knfapp
+      - '-e'
+      - AUTH_GOOGLE_ID=${_AUTH_GOOGLE_ID}
+      - '-e'
+      - AUTH_GOOGLE_SECRET=${_AUTH_GOOGLE_SECRET}
+      - >-
+        $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - 
+    id: Run
+
+images:
+  - >-
+    $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+options:
+  substitutionOption: ALLOW_LOOSE
+  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _PLATFORM: managed
+  _TRIGGER_ID: 811aad2a-bfc5-4c0d-b1b0-5fc6aa62a650
+  _SERVICE_NAME: skateshop
+  _DEPLOY_REGION: asia-east2
+  _AR_HOSTNAME: asia-east2-docker.pkg.dev
+tags:
+  - gcp-cloud-build-deploy-cloud-run
+  - gcp-cloud-build-deploy-cloud-run-managed
+  - skateshop
