@@ -24,11 +24,11 @@ RUN  \
 
 FROM node:18-alpine AS builder
 
-ENV DATABASE_URL="postgresql://knfapp_owner:JT6wxRnqdWP8@ep-damp-wind-a1mh78yc.ap-southeast-1.aws.neon.tech/knfapp?sslmode=require"
-ENV NEXT_PUBLIC_CLIENTVAR=clientvar
-ENV UPSTASH_REDIS_REST_URL="https://ep-damp-wind-a1mh78yc.ap-southeast-1.aws.neon.tech"
-ENV UPSTASH_REDIS_REST_TOKEN="your_upstash_redis_rest_token"
+ARG DATABASE_URL
+ARG RESEND_API_KEY
 
+ENV DATABASE_URL=$DATABASE_URL
+ENV RESEND_API_KEY=$RESEND_API_KEY
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
