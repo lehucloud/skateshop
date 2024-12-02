@@ -8,6 +8,8 @@ WORKDIR /app
 
 COPY drizzle ./
 
+COPY env.production ./.env.production
+
 # Install dependencies based on the preferred package manager
 
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
@@ -26,6 +28,9 @@ FROM node:18-alpine AS builder
 
 ARG AUTH_GOOGLE_ID
 ARG AUTH_GOOGLE_SECRET
+
+ENV AUTH_GOOGLE_ID=${_AUTH_GOOGLE_ID}
+ENV AUTH_GOOGLE_SECRET=${_AUTH_GOOGLE_SECRET}
 
 ENV AUTH_SECRET="ChX/fhj4Ybvegp1dmtf63Ae3EjPMgcRpschZNArmSiM=" 
 ENV AUTH_WECHAT_APP_ID="wx04ca1fa1c3f1770d"
@@ -49,9 +54,6 @@ ENV STRIPE_API_KEY="sk_test_51QI8XWPF6uIdO7c3sc0dWkU2FlslfDqpz61Yjo8ZjMsgoXfYaL7
 ENV STRIPE_WEBHOOK_SECRET="whsec_"
 ENV STRIPE_STD_MONTHLY_PRICE_ID="price_"
 ENV STRIPE_PRO_MONTHLY_PRICE_ID="price_"
-ENV SKIP_ENV_VALIDATION="true"
-
-
 
 
 WORKDIR /app
