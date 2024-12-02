@@ -1,0 +1,14 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/civil-hope-441115-r2/github.com/lehucloud/skateshop:$COMMIT_SHA', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/civil-hope-441115-r2/github.com/lehucloud/skateshop:$COMMIT_SHA']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - run
+  - deploy
+  - knfapp
+  - --image=gcr.io/civil-hope-441115-r2/github.com/lehucloud/skateshop:$COMMIT_SHA
+  - --region=asia-east2
+  - --platform=managed
