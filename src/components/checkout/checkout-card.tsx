@@ -27,6 +27,9 @@ export async function CheckoutCard({ storeId }: CheckoutCardProps) {
     storeId,
   })
   
+  //生成订单
+
+  //删除购物车中的商品
 
   return (
 

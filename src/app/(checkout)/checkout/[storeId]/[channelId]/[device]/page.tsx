@@ -106,13 +106,15 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
         }}),
       quantity: Number(quantity),
       amount: total.toFixed(2),
-      storeOrderNo: generateId(),
+      storeOrderNo: payorder.orderId,
       payClient: device,
       status: "pending",
       userId: store.userId,
   }
 
   addOrder(newOrder);
+
+
 
   if (!payChannel) {
     return (
