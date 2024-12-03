@@ -22,8 +22,8 @@ RUN  \
 
 FROM node:18-alpine AS builder
 
-ARG AUTH_GOOGLE_ID = ${_AUTH_GOOGLE_ID}
-ARG AUTH_GOOGLE_SECRET = ${_AUTH_GOOGLE_SECRET}
+ARG AUTH_GOOGLE_ID = ""
+ARG AUTH_GOOGLE_SECRET = ""
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -46,7 +46,7 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
- 
+
 
 # ENV NEXT_TELEMETRY_DISABLED 1
 
