@@ -25,6 +25,9 @@ FROM node:18-alpine AS builder
 ARG AUTH_GOOGLE_ID
 ARG AUTH_GOOGLE_SECRET
 
+RUN echo "AUTH_GOOGLE_ID: $AUTH_GOOGLE_ID"
+RUN echo "AUTH_GOOGLE_SECRET: $AUTH_GOOGLE_SECRET"
+
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
