@@ -6,6 +6,12 @@ WORKDIR /app
 
 COPY .env.production ./
 
+ARG AUTH_GOOGLE_ID
+ARG AUTH_GOOGLE_SECRET
+
+RUN echo "AUTH_GOOGLE_ID= ${AUTH_GOOGLE_ID}" >> .env.production
+RUN echo "AUTH_GOOGLE_SECRET= ${AUTH_GOOGLE_SECRET}" >> .env.production
+
 RUN cat .env.production
 
 # Install dependencies based on the preferred package manager
@@ -44,7 +50,6 @@ FROM node:18-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
-
 
 
 # ENV NEXT_TELEMETRY_DISABLED 1
