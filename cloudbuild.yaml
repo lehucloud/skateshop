@@ -1,5 +1,8 @@
 steps:
   - name: gcr.io/cloud-builders/docker
+    env:
+      - 'AUTH_GOOGLE_ID=${_AUTH_GOOGLE_ID}'
+      - 'AUTH_GOOGLE_SECRET=${_AUTH_GOOGLE_SECRET}'
     args:
       - build
       - '--no-cache'
