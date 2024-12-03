@@ -4,10 +4,6 @@ FROM  node:18-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-# Install Prisma Client - remove if not using Prisma
-
-COPY drizzle ./
-
 COPY .env.production ./
 
 # Install dependencies based on the preferred package manager
@@ -26,9 +22,13 @@ RUN  \
 
 FROM node:18-alpine AS builder
 
+ARG AUTH_GOOGLE_ID = ${_AUTH_GOOGLE_ID}
+ARG AUTH_GOOGLE_SECRET = ${_AUTH_GOOGLE_SECRET}
+
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
 
 # ENV NEXT_TELEMETRY_DISABLED 1
 
@@ -46,8 +46,7 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
-ENV AUTH_GOOGLE_ID ""
-ENV AUTH_GOOGLE_SECRET ""
+
 
 # ENV NEXT_TELEMETRY_DISABLED 1
 

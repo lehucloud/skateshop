@@ -107,6 +107,7 @@ export async function seedProducts({
       storeId,
       inventory: faker.number.int({ min: 50, max: 100 }),
       rating: faker.number.int({ min: 0, max: 5 }),
+      salesVolume: faker.number.int({ min: 0, max: 100 }),
     })
   }
 
