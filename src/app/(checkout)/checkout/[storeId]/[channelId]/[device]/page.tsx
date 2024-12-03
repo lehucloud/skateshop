@@ -7,7 +7,7 @@ import { env } from "@/env.js"
 import { ArrowLeftIcon } from "@radix-ui/react-icons"
 import { and, eq } from "drizzle-orm"
 
-import { getCart } from "@/lib/actions/cart"
+import { deleteCart, getCart } from "@/lib/actions/cart"
 import PaymentFactory from "@/lib/actions/payments"
 import { cn, formatPrice } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -114,7 +114,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
 
   addOrder(newOrder);
 
-
+  
 
   if (!payChannel) {
     return (

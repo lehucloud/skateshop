@@ -1,8 +1,6 @@
 steps:
   - name: gcr.io/cloud-builders/docker
-    env:
-      - AUTH_GOOGLE_ID=${_AUTH_GOOGLE_ID}
-      - AUTH_GOOGLE_SECRET=${_AUTH_GOOGLE_SECRET}
+
     args:
       - build
       - '--no-cache'
@@ -12,8 +10,11 @@ steps:
       - .
       - '-f'
       - Dockerfile
+    env:
+      - AUTH_GOOGLE_ID=${_AUTH_GOOGLE_ID}
+      - AUTH_GOOGLE_SECRET=${_AUTH_GOOGLE_SECRET}
     id: Build
-    
+
   - name: gcr.io/cloud-builders/docker
     args:
       - push
@@ -35,8 +36,6 @@ steps:
       - '--quiet'
     id: Deploy
     entrypoint: gcloud
-
-
 
 images:
   - >-
