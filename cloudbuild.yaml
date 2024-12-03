@@ -17,16 +17,15 @@ steps:
         $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
     id: Push
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    env:
+      - AUTH_GOOGLE_ID=${_AUTH_GOOGLE_ID}
+      - AUTH_GOOGLE_SECRET=${_AUTH_GOOGLE_SECRET}
     args:
       - run
       - services
       - update
       - $_SERVICE_NAME
       - '--platform=managed'
-      - env
-      - >-
-        AUTH_GOOGLE_ID=${_AUTH_GOOGLE_ID}
-        AUTH_GOOGLE_SECRET=${_AUTH_GOOGLE_SECRET}
       - >-
         --image=$_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
       - >-
