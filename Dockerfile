@@ -6,11 +6,16 @@ WORKDIR /app
 
 COPY .env.production ./
 
+
 ARG AUTH_GOOGLE_ID
 ARG AUTH_GOOGLE_SECRET
+ARG AUTH_GITHUB_ID
+ARG AUTH_GITHUB_SECRET
 
-RUN echo "AUTH_GOOGLE_ID= ${AUTH_GOOGLE_ID}" >> .env.production
-RUN echo "AUTH_GOOGLE_SECRET= ${AUTH_GOOGLE_SECRET}" >> .env.production
+RUN echo "AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID}" >> .env.production
+RUN echo "AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET}" >> .env.production
+RUN echo "AUTH_GITHUB_ID=${AUTH_GITHUB_ID}" >> .env.production
+RUN echo "AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}" >> .env.production
 
 RUN cat .env.production
 
