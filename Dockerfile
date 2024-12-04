@@ -4,9 +4,6 @@ FROM  node:18-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-COPY .env.production ./
-
-
 ARG AUTH_GOOGLE_ID
 ARG AUTH_GOOGLE_SECRET
 ARG AUTH_GITHUB_ID
@@ -16,6 +13,8 @@ RUN echo "AUTH_GOOGLE_ID=\"${AUTH_GOOGLE_ID}\"" >> .env.production
 RUN echo "AUTH_GOOGLE_SECRET=\"${AUTH_GOOGLE_SECRET}\"" >> .env.production
 RUN echo "AUTH_GITHUB_ID=\"${AUTH_GITHUB_ID}\"" >> .env.production
 RUN echo "AUTH_GITHUB_SECRET=\"${AUTH_GITHUB_SECRET}\"" >> .env.production
+
+COPY .env.production ./
 
 RUN cat .env.production
 
